@@ -10,6 +10,7 @@ Projenin localde kaldirilmasi icin asagidaki adimlar izlenmelidir.
 
 - Docker
 - Docker Compose
+- Go 1.20
 
 ### Calistirma
 
