@@ -1,2 +1,7 @@
 .idea/
 .vscode/
+
+cmd/api/.env
+cmd/api/.air.toml
+# Compiled go files from air
+cmd/api/tmp

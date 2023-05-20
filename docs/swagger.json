@@ -1,0 +1,17 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Musahit Harita API",
+        "title": "Musahit Harita API",
+        "contact": {
+            "name": "Acik Kaynak"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "https://github.com/acikkaynak/musahit-harita-backend/blob/main/LICENSE"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:80",
+    "paths": {}
+}

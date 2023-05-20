@@ -1,0 +1,12 @@
+host: localhost:80
+info:
+  contact:
+    name: Acik Kaynak
+  description: Musahit Harita API
+  license:
+    name: Apache 2.0
+    url: https://github.com/acikkaynak/musahit-harita-backend/blob/main/LICENSE
+  title: Musahit Harita API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

@@ -62,7 +62,8 @@ services:
   postgres:
     image: postgres:15.1
     environment:
-      POSTGRES_PASSWORD: s3cr3t
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     healthcheck:
       test: [ "CMD", "pg_isready" ,"-U", "postgres", "-h", "127.0.0.1", "-p", "5432" ]
       interval: 5s
