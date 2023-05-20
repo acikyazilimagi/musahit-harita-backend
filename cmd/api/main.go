@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	redisStore "github.com/acikkaynak/musahit-harita-backend/cache"
 	_ "github.com/acikkaynak/musahit-harita-backend/docs"
+	"github.com/acikkaynak/musahit-harita-backend/handler"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
 	"github.com/acikkaynak/musahit-harita-backend/repository"
 	"github.com/gofiber/adaptor/v2"
@@ -30,9 +32,7 @@ func (a *Application) RegisterApi() {
 	a.app.Get("/monitor", monitor.New())
 
 	// health check endpoint for kubernetes
-	a.app.Get("/healthz", func(c *fiber.Ctx) error {
-		return c.SendString("OK")
-	})
+	a.app.Get("/healthz", handler.HealthCheck)
 
 	// metrics endpoint for prometheus
 	a.app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
@@ -63,6 +63,9 @@ func main() {
 	// register repositories to fiber app
 	pgStore := repository.New()
 
+	// register redis to fiber app
+	cache := redisStore.NewRedisStore()
+
 	application := &Application{
 		app:        app,
 		repository: pgStore,
@@ -89,4 +92,6 @@ func main() {
 	log.Logger().Info("application cleanup tasks..")
 	// close database connection
 	pgStore.Close()
+	// close redis connection
+	cache.Close()
 }

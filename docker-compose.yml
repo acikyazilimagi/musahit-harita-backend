@@ -73,6 +73,24 @@ services:
       - ./resources/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - 5435:5432
+    networks:
+        - backend-network
 
   redis:
-    image: redis:latest
+    image: redis:6.2.6-alpine
+    restart: always
+    ports:
+      - '6379:6379'
+    command: redis-server --save 20 1 --loglevel warning --requirepass eYVX7EwVmmxKPCDmwMtyKVge8oLd2t81
+    volumes:
+      - cache:/data
+    networks:
+        - backend-network
+
+volumes:
+  cache:
+    driver: local
+
+networks:
+  backend-network:
+    driver: bridge
