@@ -12,16 +12,16 @@ services:
   #    - kafka
   #    - postgres
 
-  api:
-    build: cmd/api
-    environment:
-      KAFKA_BROKERS: kafka:9092
-      DB_CONN_STR: postgres://postgres:s3cr3t@postgresql:5432/postgres
-      RedisAddr: redis:6379
-    depends_on:
-      - kafka
-      - postgres
-      - redis
+  #api:
+  #  build: cmd/api
+  #  environment:
+  #    KAFKA_BROKERS: kafka:9092
+  #    DB_CONN_STR: postgres://postgres:s3cr3t@postgresql:5432/postgres
+  #    RedisAddr: redis:6379
+  #  depends_on:
+  #    - kafka
+  #    - postgres
+  #    - redis
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -72,7 +72,7 @@ services:
     volumes:
       - ./resources/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - 5435:5432
+      - 5432:5432
     networks:
         - backend-network
 
