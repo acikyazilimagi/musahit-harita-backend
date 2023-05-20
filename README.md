@@ -16,7 +16,7 @@ Projenin localde kaldirilmasi icin asagidaki adimlar izlenmelidir.
 
 1. Docker compose ile uygulama ayaga kaldirilir. Her seferinde temiz bir ortam olusturmaktan emin olmak icin `--build --remove-orphans --force-recreate` parametreleri asagidaki komuta eklenebilir (container'lara ait varolan veriler silinmez).
 ```bash
-docker compose up
+docker-compose up
 ```
 
 2. env dosyasi olusturulur sisteme gore degiskenler eklenir.
