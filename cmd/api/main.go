@@ -66,7 +66,7 @@ func main() {
 	app.Use(cache.New())
 	app.Use(compress.New(compress.Config{
 		Next: func(c *fiber.Ctx) bool {
-			return c.Path() == "/swagger/*"
+			return c.Path() == "/swagger/index.html"
 		},
 		Level: compress.LevelBestCompression,
 	}))
