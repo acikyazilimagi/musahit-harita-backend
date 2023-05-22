@@ -8,7 +8,7 @@ import (
 )
 
 type RedisStore struct {
-	client *redis.Client
+	Client *redis.Client
 }
 
 func NewRedisStore() *RedisStore {
@@ -18,18 +18,18 @@ func NewRedisStore() *RedisStore {
 		DB:       0,
 	})
 
-	return &RedisStore{client: client}
+	return &RedisStore{Client: client}
 }
 
 func (r *RedisStore) SetKey(key string, value []byte, ttl time.Duration) {
-	err := r.client.Set(r.client.Context(), key, value, ttl).Err()
+	err := r.Client.Set(r.Client.Context(), key, value, ttl).Err()
 	if err != nil {
 		log.Logger().Info("Unable to set key in redis" + key + err.Error())
 	}
 }
 
 func (r *RedisStore) Get(key string) []byte {
-	get := r.client.Get(r.client.Context(), key)
+	get := r.Client.Get(r.Client.Context(), key)
 
 	resp, err := get.Bytes()
 	if err != nil {
@@ -40,13 +40,13 @@ func (r *RedisStore) Get(key string) []byte {
 }
 
 func (r *RedisStore) Delete(key string) error {
-	return r.client.Del(r.client.Context(), key).Err()
+	return r.Client.Del(r.Client.Context(), key).Err()
 }
 
 func (r *RedisStore) DeleteAll() error {
-	return r.client.FlushDB(r.client.Context()).Err()
+	return r.Client.FlushDB(r.Client.Context()).Err()
 }
 
 func (r *RedisStore) Close() {
-	r.client.Close()
+	r.Client.Close()
 }
