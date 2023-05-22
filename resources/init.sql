@@ -50,8 +50,8 @@ CREATE TABLE "ballot_boxes"
     "id"          serial primary key,
     "box_no"      int,
     "ysk_id"      int unique,
-    "building_id" int REFERENCES "buildings" ("id"),
-    "location_id" int REFERENCES "locations" ("id"),
+    "building_id" int not null REFERENCES "buildings" ("id"),
+    "location_id" int not null REFERENCES "locations" ("id"),
     "voter_count" int
 );
 
@@ -63,11 +63,19 @@ CREATE TABLE "users"
     "source_id" int REFERENCES "sources" ("id")
 );
 
-CREATE TABLE "volunteer_counts"
+CREATE TABLE "volunteer_location_counts"
 (
     "id"          serial primary key,
     "count"       int,
     "source_id"   int REFERENCES "sources" ("id"),
     "building_id" int REFERENCES "buildings" ("id"),
-    "location_id" int REFERENCES "locations" ("id")
+    "location_id" int unique REFERENCES "locations" ("id")
+);
+
+CREATE TABLE "volunteer_district_counts"
+(
+    "id"          serial primary key,
+    "count"       int,
+    "source_id"   int REFERENCES "sources" ("id"),
+    "district_id" int unique
 );
