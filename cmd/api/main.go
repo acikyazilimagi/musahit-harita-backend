@@ -5,11 +5,12 @@ import (
 	redisStore "github.com/acikkaynak/musahit-harita-backend/cache"
 	_ "github.com/acikkaynak/musahit-harita-backend/docs"
 	"github.com/acikkaynak/musahit-harita-backend/handler"
+	"github.com/acikkaynak/musahit-harita-backend/middleware/cache"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
 	"github.com/acikkaynak/musahit-harita-backend/repository"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cache"
+	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
@@ -28,6 +29,7 @@ type Application struct {
 }
 
 func (a *Application) RegisterApi() {
+	a.app.Get("/", handler.RedirectSwagger)
 	// monitor endpoint for pprof
 	a.app.Get("/monitor", monitor.New())
 
@@ -36,6 +38,9 @@ func (a *Application) RegisterApi() {
 
 	// metrics endpoint for prometheus
 	a.app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
+
+	a.app.Get("/feeds/", handler.GetFeed(a.repository))
+	a.app.Get("/feeds/mock", handler.GetFeedMock())
 
 	// swagger docs endpoint
 	route := a.app.Group("/swagger")
@@ -59,12 +64,22 @@ func main() {
 	app.Use(recover.New())
 	app.Use(pprof.New())
 	app.Use(cache.New())
+	app.Use(compress.New(compress.Config{
+		Next: func(c *fiber.Ctx) bool {
+			return c.Path() == "/swagger/*"
+		},
+		Level: compress.LevelBestCompression,
+	}))
 
 	// register repositories to fiber app
 	pgStore := repository.New()
 
 	// register redis to fiber app
-	cache := redisStore.NewRedisStore()
+	cache, err := redisStore.NewRedisStore()
+	if err != nil {
+		log.Logger().Panic(fmt.Sprintf("redis error: %s", err.Error()))
+		os.Exit(1)
+	}
 
 	application := &Application{
 		app:        app,

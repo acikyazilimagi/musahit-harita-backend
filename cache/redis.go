@@ -1,40 +1,92 @@
 package cache
 
 import (
+	"fmt"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
 	"github.com/go-redis/redis/v8"
-	"os"
 	"time"
 )
 
 type RedisStore struct {
 	client *redis.Client
+	conf   *Config
 }
 
-func NewRedisStore() *RedisStore {
+var RedisCache *RedisStore
+
+func NewRedisStore() (*RedisStore, error) {
+	if RedisCache != nil {
+		return RedisCache, nil
+	}
+
+	conf := NewConfig()
 	client := redis.NewClient(&redis.Options{
-		Addr:     os.Getenv("REDIS_HOST"),
-		Password: os.Getenv("REDIS_PASSWORD"),
+		Addr:     conf.RedisHost,
+		Password: conf.RedisPassword,
 		DB:       0,
 	})
 
-	return &RedisStore{client: client}
+	_, err := client.Ping(client.Context()).Result()
+	if err != nil {
+		log.Logger().Info(fmt.Sprintf("Unable to connect to redis: %s", err.Error()))
+		return nil, err
+	}
+
+	RedisCache = &RedisStore{client: client, conf: conf}
+
+	return RedisCache, nil
 }
 
-func (r *RedisStore) SetKey(key string, value []byte, ttl time.Duration) {
+func (r *RedisStore) SetKey(key string, value interface{}, ttl time.Duration) {
 	err := r.client.Set(r.client.Context(), key, value, ttl).Err()
 	if err != nil {
 		log.Logger().Info("Unable to set key in redis" + key + err.Error())
 	}
 }
 
-func (r *RedisStore) Get(key string) []byte {
+func (r *RedisStore) GetKey(key string) interface{} {
 	get := r.client.Get(r.client.Context(), key)
+
+	resp, err := get.Result()
+	if err != nil {
+		log.Logger().Info("Unable to get key in redis" + key + err.Error())
+	}
+
+	return resp
+}
+
+func (r *RedisStore) SetCacheResponse(key string, value []byte, ttl time.Duration) {
+	fmt.Println("key", key, "value", string(value))
+	fmt.Println("r.client", r.client)
+	fmt.Println("r.client.Context()", r.client.Context())
+	stats := r.client.Set(r.client.Context(), key, value, ttl)
+	fmt.Println("stats", stats)
+	result, err := stats.Result()
+	fmt.Println("result", result)
+	if err != nil {
+		log.Logger().Info("Unable to set key in redis" + key + err.Error())
+		return
+	}
+}
+
+func (r *RedisStore) GetCacheResponse(key string) []byte {
+	get := r.client.Get(r.client.Context(), key)
+	if get == nil {
+		log.Logger().Info("Unable to get key in redis" + key)
+		return nil
+	}
+
+	if get.Err() != nil {
+		log.Logger().Info("Unable to get key in redis" + key + get.Err().Error())
+		return nil
+	}
 
 	resp, err := get.Bytes()
 	if err != nil {
 		log.Logger().Info("Unable to get key in redis" + key + err.Error())
 	}
+
+	fmt.Println("resp", string(resp))
 
 	return resp
 }
