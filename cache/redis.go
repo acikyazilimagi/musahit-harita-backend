@@ -56,13 +56,7 @@ func (r *RedisStore) GetKey(key string) interface{} {
 }
 
 func (r *RedisStore) SetCacheResponse(key string, value []byte, ttl time.Duration) {
-	fmt.Println("key", key, "value", string(value))
-	fmt.Println("r.client", r.client)
-	fmt.Println("r.client.Context()", r.client.Context())
-	stats := r.client.Set(r.client.Context(), key, value, ttl)
-	fmt.Println("stats", stats)
-	result, err := stats.Result()
-	fmt.Println("result", result)
+	err := r.client.Set(r.client.Context(), key, value, ttl).Err()
 	if err != nil {
 		log.Logger().Info("Unable to set key in redis" + key + err.Error())
 		return
@@ -85,8 +79,6 @@ func (r *RedisStore) GetCacheResponse(key string) []byte {
 	if err != nil {
 		log.Logger().Info("Unable to get key in redis" + key + err.Error())
 	}
-
-	fmt.Println("resp", string(resp))
 
 	return resp
 }
