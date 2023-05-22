@@ -2,14 +2,20 @@ package main
 
 import (
 	"fmt"
+
 	redisStore "github.com/acikkaynak/musahit-harita-backend/cache"
 	_ "github.com/acikkaynak/musahit-harita-backend/docs"
 	"github.com/acikkaynak/musahit-harita-backend/handler"
+	"github.com/acikkaynak/musahit-harita-backend/middleware/cache"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
 	"github.com/acikkaynak/musahit-harita-backend/repository"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cache"
+
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/gofiber/fiber/v2/middleware/pprof"
@@ -17,9 +23,6 @@ import (
 	"github.com/gofiber/swagger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 type Application struct {
@@ -28,6 +31,8 @@ type Application struct {
 }
 
 func (a *Application) RegisterApi() {
+	a.app.Get("/", handler.RedirectSwagger)
+
 	// monitor endpoint for pprof
 	a.app.Get("/monitor", monitor.New())
 
@@ -36,6 +41,9 @@ func (a *Application) RegisterApi() {
 
 	// metrics endpoint for prometheus
 	a.app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
+
+	// cache invalidate endpoint
+	a.app.Get("/caches/prune", handler.InvalidateCache())
 
 	// swagger docs endpoint
 	route := a.app.Group("/swagger")
@@ -64,7 +72,7 @@ func main() {
 	pgStore := repository.New()
 
 	// register redis to fiber app
-	cache := redisStore.NewRedisStore()
+	cacheRedis := redisStore.NewRedisStore()
 
 	application := &Application{
 		app:        app,
@@ -93,5 +101,5 @@ func main() {
 	// close database connection
 	pgStore.Close()
 	// close redis connection
-	cache.Close()
+	cacheRedis.Close()
 }
