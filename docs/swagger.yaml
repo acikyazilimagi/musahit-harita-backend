@@ -1,3 +1,20 @@
+definitions:
+  feeds.Feed:
+    properties:
+      district_id:
+        type: integer
+      volunteer_data:
+        type: integer
+    type: object
+  feeds.Response:
+    properties:
+      count:
+        type: integer
+      results:
+        items:
+          $ref: '#/definitions/feeds.Feed'
+        type: array
+    type: object
 host: localhost:80
 info:
   contact:
@@ -8,5 +25,29 @@ info:
     url: https://github.com/acikkaynak/musahit-harita-backend/blob/main/LICENSE
   title: Musahit Harita API
   version: "1.0"
-paths: {}
+paths:
+  /feeds:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feeds.Response'
+      summary: Get Feeds
+      tags:
+      - Feed
+  /feeds/mock:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feeds.Response'
+      summary: Get Feeds mock
+      tags:
+      - Feed
 swagger: "2.0"
