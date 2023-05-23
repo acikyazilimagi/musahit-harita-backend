@@ -3,6 +3,9 @@ package repository
 import (
 	"context"
 	_ "embed"
+	"os"
+	"time"
+
 	"github.com/Masterminds/squirrel"
 	"github.com/acikkaynak/musahit-harita-backend/feeds"
 	"github.com/acikkaynak/musahit-harita-backend/model"
@@ -12,13 +15,11 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"go.uber.org/zap"
-	"os"
-	"time"
 )
 
 var (
 	psql                             = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-	volunteerLocationCountsTableName = "volunteer_locations_counts"
+	volunteerLocationCountsTableName = "volunteer_counts"
 
 	//go:embed city-district-neighborhood.json
 	trCities            []byte
