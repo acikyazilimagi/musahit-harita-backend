@@ -4,18 +4,15 @@ import (
 	"context"
 	_ "embed"
 	"github.com/Masterminds/squirrel"
-	redisStore "github.com/acikkaynak/musahit-harita-backend/cache"
 	"github.com/acikkaynak/musahit-harita-backend/feeds"
-	"github.com/acikkaynak/musahit-harita-backend/model/city"
+	"github.com/acikkaynak/musahit-harita-backend/model"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
-	"github.com/acikkaynak/musahit-harita-backend/utils/langutil"
+	"github.com/goccy/go-json"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	jsoniter "github.com/json-iterator/go"
 	"go.uber.org/zap"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -23,15 +20,11 @@ var (
 	psql                             = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 	volunteerDistrictCountsTableName = "volunteer_district_counts"
 
-	//go:embed tr-cities.json
-	trCities []byte
-	Cities   []city.City
-
-	//go:embed tr-city-districts.json
-	trDistricts []byte
-	Districts   []city.District
-
-	json = jsoniter.ConfigCompatibleWithStandardLibrary
+	//go:embed tr-neighborhoods.json
+	trCities            []byte
+	CityIdToMap         = make(map[int]model.City)
+	DistrictIdToMap     = make(map[int]model.District)
+	NeighborhoodIdToMap = make(map[int]model.Neighborhood)
 )
 
 type PgxIface interface {
@@ -64,7 +57,7 @@ func New() *Repository {
 		os.Exit(1)
 	}
 
-	err = initDistricts()
+	err = initCities()
 	if err != nil {
 		log.Logger().Fatal("Unable to initialize districts", zap.Error(err))
 		os.Exit(1)
@@ -94,7 +87,7 @@ func (r *Repository) GetFeeds() (*feeds.Response, error) {
 	feedResults := make([]feeds.Feed, 0)
 	for rows.Next() {
 		var feed feeds.Feed
-		err := rows.Scan(&feed.DistrictId, &feed.VolunteerData)
+		err := rows.Scan(&feed.NeighborhoodId, &feed.VolunteerData)
 		if err != nil {
 			return nil, err
 		}
@@ -108,32 +101,21 @@ func (r *Repository) GetFeeds() (*feeds.Response, error) {
 	return &response, nil
 }
 
-func initDistricts() error {
-	err := json.Unmarshal(trCities, &Cities)
+func initCities() error {
+	cityIdToMap := make(map[string]model.City)
+	err := json.Unmarshal(trCities, &cityIdToMap)
 	if err != nil {
 		return err
 	}
 
-	rd, err := redisStore.NewRedisStore()
-	if err != nil {
-		return err
-	}
-
-	var cityIdToCityName = make(map[int64]string)
-	for _, c := range Cities {
-		cityIdToCityName[c.Id] = c.Name
-	}
-
-	err = json.Unmarshal(trDistricts, &Districts)
-	if err != nil {
-		return err
-	}
-
-	for _, d := range Districts {
-		cityName := langutil.ConvertTurkishCharsToEnglish(cityIdToCityName[d.CityId])
-		districtName := langutil.ConvertTurkishCharsToEnglish(d.Name)
-		key := strings.ToUpper(cityName + ":" + districtName)
-		rd.SetKey(key, d.Id, 0)
+	for _, city := range cityIdToMap {
+		CityIdToMap[city.Id] = city
+		for _, district := range city.Districts {
+			DistrictIdToMap[district.Id] = district
+			for _, neighborhood := range district.Neighborhoods {
+				NeighborhoodIdToMap[neighborhood.Id] = neighborhood
+			}
+		}
 	}
 
 	return nil

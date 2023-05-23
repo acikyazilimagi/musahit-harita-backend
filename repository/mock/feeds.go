@@ -9,10 +9,10 @@ import (
 func GetFeeds() (*feeds.Response, error) {
 	var response []feeds.Feed
 
-	for _, district := range repository.Districts {
+	for _, nh := range repository.NeighborhoodIdToMap {
 		response = append(response, feeds.Feed{
-			DistrictId:    district.Id,
-			VolunteerData: rand.Intn(4) + 1,
+			NeighborhoodId: nh.Id,
+			VolunteerData:  rand.Intn(5) + 1,
 		})
 	}
 

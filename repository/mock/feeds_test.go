@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/acikkaynak/musahit-harita-backend/model/city"
+	"github.com/acikkaynak/musahit-harita-backend/model"
 	"github.com/acikkaynak/musahit-harita-backend/repository"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -13,25 +13,25 @@ type MockedRepository struct {
 	mock.Mock
 }
 
-func (m *MockedRepository) GetDistricts() []city.District {
+func (m *MockedRepository) GetNeighborhoods() map[int]model.Neighborhood {
 	args := m.Called()
-	return args.Get(0).([]city.District)
+	return args.Get(0).(map[int]model.Neighborhood)
 }
 
 func TestGetFeeds(t *testing.T) {
 	// Arrange
 	mockRepository := new(MockedRepository)
-	feeds := make([]city.District, 0)
+	feeds := make(map[int]model.Neighborhood)
 	for i := 1; i <= 10; i++ {
-		feeds = append(feeds, city.District{
-			Id:   int64(i),
-			Name: "District " + strconv.Itoa(i),
-		})
+		feeds[i] = model.Neighborhood{
+			Id:   i,
+			Name: "Neighborhood " + strconv.Itoa(i),
+		}
 	}
 
-	mockRepository.On("GetDistricts").Return(feeds)
+	mockRepository.On("GetNeighborhoods").Return(feeds)
 
-	repository.Districts = mockRepository.GetDistricts()
+	repository.NeighborhoodIdToMap = mockRepository.GetNeighborhoods()
 
 	// Act
 	response, err := GetFeeds()
@@ -49,11 +49,11 @@ func TestGetFeeds(t *testing.T) {
 func TestGetFeedsWithEmptyDistricts(t *testing.T) {
 	// Arrange
 	mockRepository := new(MockedRepository)
-	feeds := make([]city.District, 0)
+	feeds := make(map[int]model.Neighborhood)
 
-	mockRepository.On("GetDistricts").Return(feeds)
+	mockRepository.On("GetNeighborhoods").Return(feeds)
 
-	repository.Districts = mockRepository.GetDistricts()
+	repository.NeighborhoodIdToMap = mockRepository.GetNeighborhoods()
 
 	// Act
 	response, err := GetFeeds()

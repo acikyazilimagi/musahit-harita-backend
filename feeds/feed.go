@@ -1,8 +1,8 @@
 package feeds
 
 type Feed struct {
-	DistrictId    int64 `json:"district_id,omitempty"`
-	VolunteerData int   `json:"volunteer_data,omitempty"`
+	NeighborhoodId int `json:"neighborhood_id,omitempty"`
+	VolunteerData  int `json:"volunteer_data,omitempty"`
 }
 
 type Response struct {
