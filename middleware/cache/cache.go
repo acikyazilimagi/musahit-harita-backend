@@ -2,9 +2,9 @@ package cache
 
 import (
 	"bufio"
+	"compress/gzip"
 	"github.com/acikkaynak/musahit-harita-backend/cache"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
-	"github.com/valyala/fasthttp"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
@@ -56,7 +56,7 @@ func New() fiber.Handler {
 			return err
 		}
 
-		err = c.Response().WriteGzipLevel(writer, fasthttp.CompressDefaultCompression)
+		err = c.Response().WriteGzipLevel(writer, gzip.BestCompression)
 		if err != nil {
 			log.Logger().Error("gzip error", zap.Error(err))
 			return err

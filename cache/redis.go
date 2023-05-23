@@ -37,14 +37,14 @@ func NewRedisStore() (*RedisStore, error) {
 	return RedisCache, nil
 }
 
-func (r *RedisStore) SetKey(key string, value interface{}, ttl time.Duration) {
+func (r *RedisStore) Set(key string, value interface{}, ttl time.Duration) {
 	err := r.client.Set(r.client.Context(), key, value, ttl).Err()
 	if err != nil {
 		log.Logger().Info("Unable to set key in redis" + key + err.Error())
 	}
 }
 
-func (r *RedisStore) GetKey(key string) interface{} {
+func (r *RedisStore) Get(key string) interface{} {
 	get := r.client.Get(r.client.Context(), key)
 
 	resp, err := get.Result()
