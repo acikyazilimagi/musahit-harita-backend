@@ -25,7 +25,7 @@ ADD
         "neighbourhood_ysk_id"
     );
 
-CREATE INDEX "idx_locations_neighbourhood_id" ON "locations" ("neighbourhood_id");
+CREATE INDEX "idx_locations_neighbourhood_ysk_id" ON "locations" ("neighbourhood_ysk_id");
 
 CREATE TABLE "buildings" (
     "id" serial primary key,
@@ -34,15 +34,17 @@ CREATE TABLE "buildings" (
     "location_id" int NOT NULL REFERENCES "locations" ("id")
 );
 
+CREATE TYPE "source_type" AS ENUM (
+    'ysk',
+    'volunteer',
+    'ballot_box',
+    'volunteer_location_count'
+);
+
 CREATE TABLE "sources" (
     "id" serial primary key,
     "name" varchar unique NOT NULL,
-    "type" enum (
-        'ysk',
-        'volunteer',
-        'ballot_box',
-        'volunteer_location_count'
-    ) NOT NULL
+    "type" "source_type" NOT NULL
 );
 
 CREATE TABLE "volunteers" (
