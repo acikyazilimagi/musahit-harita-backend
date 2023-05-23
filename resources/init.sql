@@ -68,9 +68,13 @@ CREATE TABLE "users"
 
 CREATE TABLE "volunteer_location_counts"
 (
-    "id"          serial primary key,
-    "count"       int,
-    "source_id"   int REFERENCES "sources" ("id"),
-    "building_id" int REFERENCES "buildings" ("id"),
-    "location_id" int unique REFERENCES "locations" ("id")
+    "id"               serial primary key,
+    "count"            int,
+    "source_id"        int REFERENCES "sources" ("id"),
+    "building_id"      int REFERENCES "buildings" ("id"),
+    "location_id"      int unique REFERENCES "locations" ("id"),
+    "neighbourhood_id" int unique
 );
+
+CREATE INDEX "idx_volunteer_location_counts_neighbourhood_id" ON "volunteer_location_counts" ("neighbourhood_id");
+CREATE INDEX "idx_volunteer_location_counts_location_id" ON "volunteer_location_counts" ("location_id");

@@ -18,9 +18,9 @@ import (
 
 var (
 	psql                             = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
-	volunteerDistrictCountsTableName = "volunteer_district_counts"
+	volunteerLocationCountsTableName = "volunteer_locations_counts"
 
-	//go:embed tr-neighborhoods.json
+	//go:embed city-district-neighborhood.json
 	trCities            []byte
 	CityIdToMap         = make(map[int]model.City)
 	DistrictIdToMap     = make(map[int]model.District)
@@ -76,7 +76,7 @@ func (r *Repository) GetFeeds() (*feeds.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
-	rawSql := psql.Select("district_id, count").From(volunteerDistrictCountsTableName)
+	rawSql := psql.Select("neighbourhood_id, count").From(volunteerLocationCountsTableName)
 	sql, args, err := rawSql.ToSql()
 	rows, err := r.pool.Query(ctx, sql, args...)
 	if err != nil {
