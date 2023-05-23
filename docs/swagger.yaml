@@ -1,7 +1,7 @@
 definitions:
   feeds.Feed:
     properties:
-      district_id:
+      neighborhood_id:
         type: integer
       volunteer_data:
         type: integer

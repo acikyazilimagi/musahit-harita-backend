@@ -65,7 +65,7 @@ const docTemplate = `{
         "feeds.Feed": {
             "type": "object",
             "properties": {
-                "district_id": {
+                "neighborhood_id": {
                     "type": "integer"
                 },
                 "volunteer_data": {
