@@ -91,6 +91,65 @@
           }
         }
       }
+    },
+    "/volunteer-form": {
+      "post": {
+        "produces": ["application/json"],
+        "tags": ["Volunteer"],
+        "summary": "Volunteer Form",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "neighborhood identifier",
+            "name": "neighborhoodId",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Your name",
+            "name": "name",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Your Surname",
+            "name": "surname",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Your email address",
+            "name": "email",
+            "required": true
+          },
+          {
+            "type": "string",
+            "description": "Your phone number",
+            "name": "phone",
+            "required": true
+          },
+          {
+            "type": "boolean",
+            "description": "KVKK approval",
+            "name": "kvkk",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/volunteer.Ok"
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {
+              "$ref": "#/definitions/error.ErrorResponse"
+            }
+          }
+        }
+      }
     }
   },
   "definitions": {
@@ -134,6 +193,31 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "volunteer.Ok": {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean"
+        }
+      }
+    },
+    "error.ErrorResponse": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "value": {
             "type": "string"
           }
         }

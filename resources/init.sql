@@ -51,7 +51,7 @@ CREATE TABLE "sources" (
 CREATE TABLE "volunteers" (
     "id" serial primary key,
     volunteer_doc jsonb,
-    "building_id" int REFERENCES "buildings" ("id"),
+    "building_id" int,
     "location_id" int REFERENCES "locations" ("id"),
     "confirmed" boolean,
     "source_id" int REFERENCES "sources" ("id")

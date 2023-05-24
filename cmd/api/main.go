@@ -12,6 +12,7 @@ import (
 	"github.com/acikkaynak/musahit-harita-backend/middleware/cache"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
 	"github.com/acikkaynak/musahit-harita-backend/repository"
+	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
@@ -27,6 +28,7 @@ import (
 type Application struct {
 	app        *fiber.App
 	repository *repository.Repository
+	validator  *validator.Validate
 }
 
 func (a *Application) RegisterApi() {
@@ -44,6 +46,7 @@ func (a *Application) RegisterApi() {
 	a.app.Get("/feeds/mock", handler.GetFeedMock())
 	a.app.Get("/feed/mock/:neighborhoodId", handler.GetFeedDetailMock())
 	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
+	a.app.Post("/volunteer-form", handler.VolunteerForm(a.validator, a.repository))
 
 	// swagger docs endpoint
 	route := a.app.Group("/swagger")
@@ -87,6 +90,7 @@ func main() {
 	application := &Application{
 		app:        app,
 		repository: pgStore,
+		validator:  validator.New(),
 	}
 
 	application.RegisterApi()
