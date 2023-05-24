@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
+
 	redisStore "github.com/acikkaynak/musahit-harita-backend/cache"
 	_ "github.com/acikkaynak/musahit-harita-backend/docs"
 	"github.com/acikkaynak/musahit-harita-backend/handler"
@@ -18,9 +22,6 @@ import (
 	"github.com/gofiber/swagger"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 type Application struct {
@@ -41,6 +42,7 @@ func (a *Application) RegisterApi() {
 
 	a.app.Get("/feeds/", handler.GetFeed(a.repository))
 	a.app.Get("/feeds/mock", handler.GetFeedMock())
+	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
 
 	// swagger docs endpoint
 	route := a.app.Group("/swagger")

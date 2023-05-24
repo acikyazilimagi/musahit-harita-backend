@@ -73,6 +73,47 @@ func (r *Repository) Close() {
 	r.pool.Close()
 }
 
+func (r *Repository) GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	sql := `
+		SELECT b.id AS building_id, b.name AS building_name,
+		  	   bb.box_no 
+		FROM volunteer_counts vc
+		JOIN (
+		 SELECT *
+		 FROM buildings
+		 WHERE id IN (
+			SELECT building_id
+			FROM volunteer_counts
+			WHERE neighbourhood_id = $1
+			LIMIT 1
+		 )
+		) b ON vc.building_id = b.id
+		JOIN ballot_boxes bb ON b.id = bb.building_id;
+	`
+	args := []interface{}{neighborhoodId}
+	rows, err := r.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var response feeds.FeedDetailResponse
+	feedDetailResults := make([]feeds.FeedDetail, 0)
+	for rows.Next() {
+		var feedDetail feeds.FeedDetail
+		err := rows.Scan(&feedDetail.BuildingId, &feedDetail.BuildingName, &feedDetail.BallotBoxId)
+		if err != nil {
+			return nil, err
+		}
+		feedDetailResults = append(feedDetailResults, feedDetail)
+	}
+	response.Details = feedDetailResults
+	response.NeighborhoodId = neighborhoodId
+
+	return &response, nil
+}
+
 func (r *Repository) GetFeeds() (*feeds.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
