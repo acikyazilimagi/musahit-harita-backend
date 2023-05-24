@@ -78,7 +78,7 @@ CREATE TABLE "volunteer_counts" (
     "priority" int,
     "source_id" int REFERENCES "sources" ("id"),
     "building_id" int REFERENCES "buildings" ("id"),
-    "location_id" int unique REFERENCES "locations" ("id"),
+    "location_id" int REFERENCES "locations" ("id"),
     "neighbourhood_id" int unique
 );
 

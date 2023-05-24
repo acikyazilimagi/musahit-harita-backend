@@ -77,20 +77,17 @@ func (r *Repository) GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailRespons
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	sql := `
-		SELECT b.id AS building_id, b.name AS building_name,
-		  	   bb.box_no 
-		FROM volunteer_counts vc
-		JOIN (
-		 SELECT *
-		 FROM buildings
-		 WHERE id IN (
-			SELECT building_id
-			FROM volunteer_counts
-			WHERE neighbourhood_id = $1
-			LIMIT 1
-		 )
-		) b ON vc.building_id = b.id
-		JOIN ballot_boxes bb ON b.id = bb.building_id;
+	WITH selected_neighbourhood AS (
+		SELECT id
+		FROM locations
+		WHERE neighbourhood_ysk_id = $1
+		LIMIT 1
+	  )
+	  SELECT b.id AS building_id, b.name AS building_name, bb.box_no
+	  FROM volunteer_counts vc
+	  JOIN selected_neighbourhood sn ON vc.location_id = sn.id
+	  LEFT JOIN buildings b ON vc.building_id = b.id
+	  LEFT JOIN ballot_boxes bb ON b.id = bb.building_id;
 	`
 	args := []interface{}{neighborhoodId}
 	rows, err := r.pool.Query(ctx, sql, args...)
