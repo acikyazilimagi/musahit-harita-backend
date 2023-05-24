@@ -3,22 +3,22 @@ package handler
 import (
 	"strconv"
 
-	"github.com/acikkaynak/musahit-harita-backend/repository"
+	"github.com/acikkaynak/musahit-harita-backend/repository/mock"
 	"github.com/gofiber/fiber/v2"
 )
 
-// GetFeedDetail godoc
+// GetFeedDetailMock godoc
 //
-//	@Summary	Get Feed Detail
+//	@Summary	Get Feed Detail mock
 //	@Tags		Feed
 //	@Produce	json
 //	@Success	200	{object}	feeds.FeedDetailResponse
-//	@Router		/feed/{neighborhoodId} [GET]
-func GetFeedDetail(repo *repository.Repository) fiber.Handler {
-	return getFeedDetail(repo)
+//	@Router		/feed/mock/{neighborhoodId} [GET]
+func GetFeedDetailMock() fiber.Handler {
+	return getFeedDetailMock()
 }
 
-func getFeedDetail(repo *repository.Repository) fiber.Handler {
+func getFeedDetailMock() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		neighborhoodId := ctx.Params("neighborhoodId", "0")
 		id, err := strconv.Atoi(neighborhoodId)
@@ -27,11 +27,10 @@ func getFeedDetail(repo *repository.Repository) fiber.Handler {
 				"error": "neighborhoodId not found",
 			})
 		}
-		feeds, err := repo.GetFeedDetail(id)
+		feed, err := mock.GetFeedDetail(id)
 		if err != nil {
 			return ctx.JSON(err)
 		}
-
-		return ctx.JSON(feeds)
+		return ctx.JSON(feed)
 	}
 }

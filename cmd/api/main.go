@@ -42,6 +42,7 @@ func (a *Application) RegisterApi() {
 
 	a.app.Get("/feeds/", handler.GetFeed(a.repository))
 	a.app.Get("/feeds/mock", handler.GetFeedMock())
+	a.app.Get("/feed/mock/:neighborhoodId", handler.GetFeedDetailMock())
 	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
 
 	// swagger docs endpoint
