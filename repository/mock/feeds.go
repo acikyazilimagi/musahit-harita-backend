@@ -37,7 +37,6 @@ func GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailResponse, error) {
 				response.Details = append(response.Details, feeds.FeedDetail{
 					BuildingName: fmt.Sprintf("Building %d", i),
 					BallotBoxNos: []int{
-						i - 1,
 						i,
 						i + 1,
 						i + 2,
