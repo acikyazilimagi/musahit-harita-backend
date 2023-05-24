@@ -118,6 +118,70 @@ func (r *Repository) GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailRespons
 	return &response, nil
 }
 
+func (r *Repository) ApplyVolunteer(volunteer model.VolunteerDoc) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	var volunteerId int
+	rawSql := psql.Select("id").From("volunteers").Where("volunteer_doc->>'email' = ?", volunteer.Email).Limit(1)
+	sql, args, err := rawSql.ToSql()
+	if err != nil {
+		return 0, err
+	}
+	row, err := r.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return 0, err
+	}
+	for row.Next() {
+		err = row.Scan(&volunteerId)
+		if err != nil {
+			return 0, err
+		}
+	}
+	if volunteerId == 0 {
+		var locationId int
+		rawSql := psql.Select("id").From("locations").Where("neighbourhood_id = ?", volunteer.NeighborhoodId).Limit(1)
+		sql, args, err := rawSql.ToSql()
+		lrow, err := r.pool.Query(ctx, sql, args...)
+		if err != nil {
+			return 0, err
+		}
+		for lrow.Next() {
+			err = lrow.Scan(&locationId)
+			if err != nil {
+				return 0, err
+			}
+		}
+		volunteerDoc, err := json.Marshal(volunteer)
+		if err != nil {
+			return 0, err
+		}
+		volunteer := model.Volunteer{
+			VolunteerDoc: volunteerDoc,
+			LocationId:   locationId,
+			Confirmed:    false,
+			SourceId:     2,
+			BuildingId:   0,
+		}
+		insertSql := psql.Insert("volunteers").Columns("volunteer_doc", "location_id", "confirmed", "source_id", "building_id").Values(volunteer.VolunteerDoc, volunteer.LocationId, volunteer.Confirmed, volunteer.SourceId, volunteer.BuildingId).Suffix("RETURNING id")
+		sql, args, err = insertSql.ToSql()
+		if err != nil {
+			return 0, err
+		}
+		irow, err := r.pool.Query(ctx, sql, args...)
+		if err != nil {
+			return 0, err
+		}
+		for irow.Next() {
+			err = irow.Scan(&volunteerId)
+			if err != nil {
+				return 0, err
+			}
+		}
+		return volunteerId, nil
+	}
+	return volunteerId, nil
+}
+
 func (r *Repository) GetFeeds() (*feeds.Response, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()

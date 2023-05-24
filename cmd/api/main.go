@@ -46,7 +46,7 @@ func (a *Application) RegisterApi() {
 	a.app.Get("/feeds/mock", handler.GetFeedMock())
 	a.app.Get("/feed/mock/:neighborhoodId", handler.GetFeedDetailMock())
 	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
-	a.app.Post("/volunteer-form", handler.VolunteerForm(a.validator))
+	a.app.Post("/volunteer-form", handler.VolunteerForm(a.validator, a.repository))
 
 	// swagger docs endpoint
 	route := a.app.Group("/swagger")
