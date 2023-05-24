@@ -75,6 +75,7 @@ CREATE TABLE "users" (
 CREATE TABLE "volunteer_counts" (
     "id" serial primary key,
     "count" int,
+    "priority" int,
     "source_id" int REFERENCES "sources" ("id"),
     "building_id" int REFERENCES "buildings" ("id"),
     "location_id" int unique REFERENCES "locations" ("id"),
