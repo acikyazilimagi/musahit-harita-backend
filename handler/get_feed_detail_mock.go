@@ -29,7 +29,9 @@ func getFeedDetailMock() fiber.Handler {
 		}
 		feed, err := mock.GetFeedDetail(id)
 		if err != nil {
-			return ctx.JSON(err)
+			return ctx.JSON(fiber.Map{
+				"error": "feed not found",
+			})
 		}
 		return ctx.JSON(feed)
 	}
