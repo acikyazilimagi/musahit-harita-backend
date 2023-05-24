@@ -32,10 +32,17 @@ func GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailResponse, error) {
 			response.NeighborhoodId = nh.Id
 			response.Intensity = rand.Intn(5) + 1
 			response.LastUpdateTime = time.Now().Add(-time.Minute * time.Duration(rand.Intn(60))).Format(time.RFC3339)
-			response.Details = make([]string, 0)
+			response.Details = make([]feeds.FeedDetail, 0)
 			for i := 0; i < rand.Intn(10)+1; i++ {
-				str := fmt.Sprintf("%s - %d", nh.Name, rand.Intn(1000)+1)
-				response.Details = append(response.Details, str)
+				response.Details = append(response.Details, feeds.FeedDetail{
+					BuildingName: fmt.Sprintf("Building %d", i),
+					BallotBoxNos: []int{
+						i - 1,
+						i,
+						i + 1,
+						i + 2,
+					},
+				})
 			}
 			break
 		}
