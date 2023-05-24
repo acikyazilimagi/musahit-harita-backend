@@ -1,8 +1,6 @@
 package cache
 
 import (
-	"bufio"
-	"compress/gzip"
 	"github.com/acikkaynak/musahit-harita-backend/cache"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
 	"go.uber.org/zap"
@@ -49,18 +47,7 @@ func New() fiber.Handler {
 		}
 
 		c.Set("x-cached-response", "true")
-		writer := bufio.NewWriter(c.Response().BodyWriter())
-		_, err = writer.Write(cacheData)
-		if err != nil {
-			log.Logger().Error("write cache error", zap.Error(err))
-			return err
-		}
-
-		err = c.Response().WriteGzipLevel(writer, gzip.BestCompression)
-		if err != nil {
-			log.Logger().Error("gzip error", zap.Error(err))
-			return err
-		}
+		c.Response().SetBodyRaw(cacheData)
 		c.Response().Header.SetContentType(fiber.MIMEApplicationJSON)
 		return nil
 	}
