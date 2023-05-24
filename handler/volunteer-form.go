@@ -11,7 +11,7 @@ type VolunteerFormRequest struct {
 	Email           string `json:"email" validate:"required,email"`
 	Phone           string `json:"phone" validate:"required,numeric,len=10"`
 	KvkkAccepted    *bool  `json:"kvkkAccepted" validate:"required,eq=true"`
-	neighbourhoodId int    `json:"neighbourhoodId" validate:"required"`
+	NeighbourhoodId int    `json:"neighbourhoodId" validate:"required"`
 }
 
 func VolunteerForm(val *validator.Validate) fiber.Handler {
@@ -29,6 +29,8 @@ func volunteerForm(val *validator.Validate) fiber.Handler {
 		if len(errors) > 0 {
 			return ctx.Status(fiber.StatusBadRequest).JSON(errors)
 		}
-		return nil
+		return ctx.JSON(map[string]interface{}{
+			"ok": true,
+		})
 	}
 }
