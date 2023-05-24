@@ -44,16 +44,16 @@ func volunteerForm(val *validator.Validate, repo *repository.Repository) fiber.H
 		}
 		id, error := repo.ApplyVolunteer(d.ToModel())
 		if error != nil {
-			return ctx.Status(fiber.StatusBadRequest).JSON(map[string]interface{}{
-				"message": error.Error(),
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"message": "An error occurred while applying volunteer",
 			})
 		}
 		if id == 0 {
-			return ctx.Status(fiber.StatusBadRequest).JSON(map[string]interface{}{
+			return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 				"message": "Volunteer already exists",
 			})
 		}
-		return ctx.Status(fiber.StatusCreated).JSON(map[string]interface{}{
+		return ctx.Status(fiber.StatusCreated).JSON(fiber.Map{
 			"id": id,
 		})
 	}

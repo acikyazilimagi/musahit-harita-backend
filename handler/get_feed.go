@@ -20,7 +20,9 @@ func getFeed(repo *repository.Repository) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		feeds, err := repo.GetFeeds()
 		if err != nil {
-			return ctx.JSON(err)
+			return ctx.JSON(fiber.Map{
+				"error": "feeds not found",
+			})
 		}
 
 		return ctx.JSON(feeds)
