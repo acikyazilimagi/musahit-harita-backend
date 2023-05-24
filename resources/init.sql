@@ -10,6 +10,7 @@ CREATE TABLE "locations" (
     "county_ysk_id" int,
     "county_name" varchar,
     "neighbourhood_ysk_id" int,
+    "neighbourhood_id" unique int,
     "neighbourhood_name" varchar,
     volunteer_data int,
     "threshold" int
@@ -78,10 +79,14 @@ CREATE TABLE "volunteer_counts" (
     "priority" int,
     "source_id" int REFERENCES "sources" ("id"),
     "building_id" int REFERENCES "buildings" ("id"),
-    "location_id" int unique REFERENCES "locations" ("id"),
-    "neighbourhood_id" int unique
+    "location_id" int REFERENCES "locations" ("id"),
+    "neighbourhood_id" int
 );
 
 CREATE INDEX "idx_volunteer_counts_neighbourhood_id" ON "volunteer_counts" ("neighbourhood_id");
 
 CREATE INDEX "idx_volunteer_counts_location_id" ON "volunteer_counts" ("location_id");
+
+CREATE INDEX idx_buildings_id ON "buildings" ("id");
+
+CREATE INDEX idx_ballot_boxes_building_id ON "ballot_boxes" ("building_id");

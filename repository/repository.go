@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	_ "embed"
+	"math/rand"
 	"os"
 	"time"
 
@@ -71,6 +72,50 @@ func New() *Repository {
 
 func (r *Repository) Close() {
 	r.pool.Close()
+}
+
+func (r *Repository) GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	sql := `
+	WITH selected_neighbourhood AS (
+		SELECT id
+		FROM locations
+		WHERE neighbourhood_id = $1
+		LIMIT 1
+	  ), box_numbers AS (
+		SELECT b.id AS building_id, ARRAY_AGG(bb.box_no ORDER BY bb.box_no) AS box_numbers
+		FROM volunteer_counts vc
+		JOIN selected_neighbourhood sn ON vc.location_id = sn.id
+		LEFT JOIN buildings b ON vc.building_id = b.id
+		LEFT JOIN ballot_boxes bb ON b.id = bb.building_id
+		GROUP BY b.id
+	  )
+	  SELECT b.name AS building_name, bn.box_numbers
+	  FROM buildings b
+	  LEFT JOIN box_numbers bn ON b.id = bn.building_id;	  
+	`
+	args := []interface{}{neighborhoodId}
+	rows, err := r.pool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+
+	var response feeds.FeedDetailResponse
+	feedDetailResults := make([]feeds.FeedDetail, 0)
+	for rows.Next() {
+		var feedDetail feeds.FeedDetail
+		err := rows.Scan(&feedDetail.BuildingName, &feedDetail.BallotBoxNos)
+		if err != nil {
+			return nil, err
+		}
+		feedDetailResults = append(feedDetailResults, feedDetail)
+	}
+	response.Details = feedDetailResults
+	response.NeighborhoodId = neighborhoodId
+	response.Intensity = rand.Intn(5) + 1                                                                      // change to real intensity
+	response.LastUpdateTime = time.Now().Add(-time.Minute * time.Duration(rand.Intn(60))).Format(time.RFC3339) // change to real time
+	return &response, nil
 }
 
 func (r *Repository) GetFeeds() (*feeds.Response, error) {

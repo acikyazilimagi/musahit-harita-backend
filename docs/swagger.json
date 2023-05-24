@@ -1,83 +1,143 @@
 {
-    "swagger": "2.0",
-    "info": {
-        "description": "Musahit Harita API",
-        "title": "Musahit Harita API",
-        "contact": {
-            "name": "Acik Kaynak"
-        },
-        "license": {
-            "name": "Apache 2.0",
-            "url": "https://github.com/acikkaynak/musahit-harita-backend/blob/main/LICENSE"
-        },
-        "version": "1.0"
+  "swagger": "2.0",
+  "info": {
+    "description": "Musahit Harita API",
+    "title": "Musahit Harita API",
+    "contact": {
+      "name": "Acik Kaynak"
     },
-    "host": "localhost:80",
-    "paths": {
-        "/feeds": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Feed"
-                ],
-                "summary": "Get Feeds",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/feeds.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/feeds/mock": {
-            "get": {
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Feed"
-                ],
-                "summary": "Get Feeds mock",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/feeds.Response"
-                        }
-                    }
-                }
-            }
-        }
+    "license": {
+      "name": "Apache 2.0",
+      "url": "https://github.com/acikkaynak/musahit-harita-backend/blob/main/LICENSE"
     },
-    "definitions": {
-        "feeds.Feed": {
-            "type": "object",
-            "properties": {
-                "neighborhood_id": {
-                    "type": "integer"
-                },
-                "volunteer_data": {
-                    "type": "integer"
-                }
+    "version": "1.0"
+  },
+  "host": "localhost:80",
+  "paths": {
+    "/feeds": {
+      "get": {
+        "produces": ["application/json"],
+        "tags": ["Feed"],
+        "summary": "Get Feeds",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/feeds.Response"
             }
-        },
-        "feeds.Response": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "results": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/feeds.Feed"
-                    }
-                }
-            }
+          }
         }
+      }
+    },
+    "/feeds/mock": {
+      "get": {
+        "produces": ["application/json"],
+        "tags": ["Feed"],
+        "summary": "Get Feeds mock",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/feeds.Response"
+            }
+          }
+        }
+      }
+    },
+    "/feed/mock/{neighborhoodId}": {
+      "get": {
+        "produces": ["application/json"],
+        "tags": ["Feed"],
+        "summary": "Get Feed Detail mock",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "neighborhoodId",
+            "name": "neighborhoodId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/feeds.FeedDetailResponse"
+            }
+          }
+        }
+      }
+    },
+    "/feed/{neighborhoodId}": {
+      "get": {
+        "produces": ["application/json"],
+        "tags": ["Feed"],
+        "summary": "Get Feed Detail",
+        "parameters": [
+          {
+            "type": "integer",
+            "description": "neighborhoodId",
+            "name": "neighborhoodId",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/feeds.FeedDetailResponse"
+            }
+          }
+        }
+      }
     }
+  },
+  "definitions": {
+    "feeds.Feed": {
+      "type": "object",
+      "properties": {
+        "neighborhood_id": {
+          "type": "integer"
+        },
+        "volunteer_data": {
+          "type": "integer"
+        }
+      }
+    },
+    "feeds.Response": {
+      "type": "object",
+      "properties": {
+        "count": {
+          "type": "integer"
+        },
+        "results": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/feeds.Feed"
+          }
+        }
+      }
+    },
+    "feeds.FeedDetailResponse": {
+      "type": "object",
+      "properties": {
+        "neighborhoodId": {
+          "type": "integer"
+        },
+        "lastUpdateTime": {
+          "type": "string"
+        },
+        "intensity": {
+          "type": "integer"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
 }

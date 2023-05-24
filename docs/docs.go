@@ -59,6 +59,62 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/feed/mock/{neighborhoodId}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Get Feed Detail mock",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "neighborhoodId",
+                        "name": "neighborhoodId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/feeds.FeedDetailResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/feed/{neighborhoodId}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Feed"
+                ],
+                "summary": "Get Feed Detail",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "neighborhoodId",
+                        "name": "neighborhoodId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/feeds.FeedDetailResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -83,6 +139,26 @@ const docTemplate = `{
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/feeds.Feed"
+                    }
+                }
+            }
+        },
+        "feeds.FeedDetailResponse": {
+            "type": "object",
+            "properties": {
+                "neighborhoodId": {
+                    "type": "integer"
+                },
+                "lastUpdateTime": {
+                    "type": "string"
+                },
+                "intensity": {
+                    "type": "integer"
+                },
+                "details": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
                     }
                 }
             }
