@@ -48,7 +48,6 @@ func (a *Application) RegisterApi() {
 	a.app.Get("/mock/feeds", handler.GetFeedMock())
 	a.app.Get("/mock/feed/:neighborhoodId", handler.GetFeedDetailMock())
 	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
-	a.app.Post("/volunteer-form", handler.VolunteerForm(a.validator, a.repository))
 
 	a.app.Post("/ovo-data", handler.UpdateOvoData())
 
