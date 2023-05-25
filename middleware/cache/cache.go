@@ -41,7 +41,7 @@ func New() fiber.Handler {
 			c.Next()
 			if c.Response().StatusCode() == fiber.StatusOK && len(c.Response().Body()) > 0 {
 				body, _ := c.Response().BodyUncompressed()
-				cacheRepo.SetCacheResponse(hashURL, body, 5*time.Minute)
+				cacheRepo.SetCacheResponse(hashURL, body, 24*time.Hour)
 			}
 			return nil
 		}

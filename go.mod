@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/Shopify/sarama v1.38.1
+	github.com/aws/aws-sdk-go v1.44.269
 	github.com/caarlos0/env/v8 v8.0.0
 	github.com/go-playground/validator/v10 v10.14.0
 	github.com/go-redis/redis/v8 v8.11.5
@@ -51,6 +52,7 @@ require (
 	github.com/jcmturner/gofork v1.7.6 // indirect
 	github.com/jcmturner/gokrb5/v8 v8.4.3 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
