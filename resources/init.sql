@@ -10,7 +10,7 @@ CREATE TABLE "locations" (
     "county_ysk_id" int,
     "county_name" varchar,
     "neighbourhood_ysk_id" int,
-    "neighbourhood_id" unique int,
+    "neighbourhood_id" int unique,
     "neighbourhood_name" varchar,
     volunteer_data int,
     "threshold" int
