@@ -6,6 +6,28 @@ definitions:
       volunteer_data:
         type: integer
     type: object
+  feeds.FeedDetail:
+    properties:
+      ballotBoxNos:
+        items:
+          type: integer
+        type: array
+      buildingName:
+        type: string
+    type: object
+  feeds.FeedDetailResponse:
+    properties:
+      details:
+        items:
+          $ref: '#/definitions/feeds.FeedDetail'
+        type: array
+      intensity:
+        type: integer
+      lastUpdateTime:
+        type: string
+      neighborhoodId:
+        type: integer
+    type: object
   feeds.Response:
     properties:
       count:
@@ -26,6 +48,18 @@ info:
   title: Musahit Harita API
   version: "1.0"
 paths:
+  /feed/{neighborhoodId}:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feeds.FeedDetailResponse'
+      summary: Get Feed Detail
+      tags:
+      - Feed
   /feeds:
     get:
       produces:
@@ -38,7 +72,19 @@ paths:
       summary: Get Feeds
       tags:
       - Feed
-  /feeds/mock:
+  /mock/feed/{neighborhoodId}:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/feeds.FeedDetailResponse'
+      summary: Get Feed Detail mock
+      tags:
+      - Feed
+  /mock/feeds:
     get:
       produces:
       - application/json

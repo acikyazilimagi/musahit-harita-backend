@@ -11,6 +11,8 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 )
 
 var OvoBuildingStore *OvoBuildingsInfo
@@ -23,28 +25,36 @@ type OvoBuilding struct {
 	District      string
 	DistrictScore int
 	Neighborhood  string
-	School        string
-	SchoolScore   int
-	SchoolID      string
+	BuildingName  string
+	BuildingScore int
+	BuildingId    string
 }
 
 type OvoBuildingsInfo struct {
-	BuildingInfos          []OvoBuilding
-	CityToDistrictsToNeigh map[string]map[string]map[string][]OvoBuilding
-	NeighToAvgScore        map[string]int
+	Mutex                     sync.RWMutex
+	BuildingInfos             []OvoBuilding
+	CityToDistrictsToNeigh    map[string]map[string]map[string][]OvoBuilding
+	NeighToAvgScore           map[string]int
+	NeighToId                 map[string]int
+	NeighborhoodIdToBuildings map[int][]OvoBuilding
+	NeighborhoodIdToAvgScore  map[int]int
+	LastUpdateTime            time.Time
 }
 
 func NewOvoBuildingInfo(data s3.ObjectData) *OvoBuildingsInfo {
 	ovoBuildingData = data.Bytes()
 	return &OvoBuildingsInfo{
-		BuildingInfos:          make([]OvoBuilding, 0),
-		CityToDistrictsToNeigh: make(map[string]map[string]map[string][]OvoBuilding),
-		NeighToAvgScore:        make(map[string]int),
+		BuildingInfos:             make([]OvoBuilding, 0),
+		CityToDistrictsToNeigh:    make(map[string]map[string]map[string][]OvoBuilding),
+		NeighToAvgScore:           make(map[string]int),
+		NeighToId:                 make(map[string]int),
+		NeighborhoodIdToBuildings: make(map[int][]OvoBuilding),
+		NeighborhoodIdToAvgScore:  make(map[int]int),
+		LastUpdateTime:            time.Now(),
 	}
 }
 
 func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
-
 	// ovoBuildingData is a byte array, we need to convert it to a io.Reader
 	f := strings.NewReader(string(ovoBuildingData))
 
@@ -76,15 +86,15 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 			continue
 		}
 		// split the last column by "|"
-		schoolData := strings.Split(record[2], "|")
-		if len(schoolData) != 2 {
-			log.Logger().Warn("Invalid school data", zap.Int("line", count), zap.Any("record", record))
+		buildingData := strings.Split(record[2], "|")
+		if len(buildingData) != 2 {
+			log.Logger().Warn("Invalid building data", zap.Int("line", count), zap.Any("record", record))
 			continue
 		}
-		// split the school name column by "-"
-		schoolNameData := strings.Split(schoolData[0], " - ")
-		if len(schoolNameData) < 3 {
-			log.Logger().Warn("Invalid school name data", zap.Int("line", count), zap.Any("record", record))
+		// split the building name column by "-"
+		buildingNameData := strings.Split(buildingData[0], " - ")
+		if len(buildingNameData) < 3 {
+			log.Logger().Warn("Invalid building name data", zap.Int("line", count), zap.Any("record", record))
 			continue
 		}
 
@@ -96,26 +106,26 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 			continue
 		}
 
-		schoolScore, err := strconv.Atoi(strings.TrimSpace(schoolNameData[0]))
+		buildingScore, err := strconv.Atoi(strings.TrimSpace(buildingNameData[0]))
 		if err != nil {
-			log.Logger().Warn("Cannot convert school score to int", zap.Int("line", count), zap.Any("record", record))
+			log.Logger().Warn("Cannot convert building score to int", zap.Int("line", count), zap.Any("record", record))
 		}
 
-		if len(strings.Split(schoolNameData[1], "-")) > 1 {
-			schoolNameData[1] = strings.Split(schoolNameData[1], "-")[0]
+		if len(strings.Split(buildingNameData[1], "-")) > 1 {
+			buildingNameData[1] = strings.Split(buildingNameData[1], "-")[0]
 		}
-		neighborhood := stringutils.ParseOvoNeighborhood(strings.TrimSpace(schoolNameData[1]))
-		schoolName := strings.TrimSpace(schoolNameData[2])
-		schoolID := schoolData[1]
+		neighborhood := stringutils.ParseOvoNeighborhood(strings.TrimSpace(buildingNameData[1]))
+		buildingName := strings.TrimSpace(buildingNameData[2])
+		buildingID := buildingData[1]
 
 		ovoBuilding := OvoBuilding{
 			City:          city,
 			District:      district,
 			DistrictScore: districtScore,
 			Neighborhood:  neighborhood,
-			School:        schoolName,
-			SchoolScore:   schoolScore,
-			SchoolID:      schoolID,
+			BuildingName:  buildingName,
+			BuildingScore: buildingScore,
+			BuildingId:    buildingID,
 		}
 
 		o.BuildingInfos = append(o.BuildingInfos, ovoBuilding)
@@ -141,7 +151,17 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 		}
 
 		// get the average score of the neighborhood
-		o.NeighToAvgScore[neighborhood] = int(math.Ceil(float64((o.NeighToAvgScore[neighborhood] + schoolScore) / 2.0)))
+		o.NeighToAvgScore[neighborhood] = int(math.Ceil(float64((o.NeighToAvgScore[neighborhood] + buildingScore) / 2.0)))
+
+		nId := CityToDistrictToNeighborhoodToNeighborhoodId[city][district][neighborhood]
+		if nId != 0 {
+			o.NeighToId[neighborhood] = nId
+			if _, ok := o.NeighborhoodIdToBuildings[nId]; !ok {
+				o.NeighborhoodIdToBuildings[nId] = make([]OvoBuilding, 0)
+			}
+			o.NeighborhoodIdToBuildings[nId] = append(o.NeighborhoodIdToBuildings[nId], ovoBuilding)
+			o.NeighborhoodIdToAvgScore[nId] = o.NeighToAvgScore[neighborhood]
+		}
 	}
 
 	OvoBuildingStore = o

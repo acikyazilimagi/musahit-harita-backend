@@ -44,8 +44,8 @@ func (a *Application) RegisterApi() {
 	a.app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
 
 	a.app.Get("/feeds/", handler.GetFeed(a.repository))
-	a.app.Get("/feeds/mock", handler.GetFeedMock())
-	a.app.Get("/feed/mock/:neighborhoodId", handler.GetFeedDetailMock())
+	a.app.Get("/mock/feeds", handler.GetFeedMock())
+	a.app.Get("/mock/feed/:neighborhoodId", handler.GetFeedDetailMock())
 	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
 	a.app.Post("/volunteer-form", handler.VolunteerForm(a.validator, a.repository))
 
@@ -91,7 +91,7 @@ func main() {
 	obi.Store()
 
 	// register redis to fiber app
-	cache, err := redisStore.NewRedisStore()
+	cach, err := redisStore.NewRedisStore()
 	if err != nil {
 		log.Logger().Panic(fmt.Sprintf("redis error: %s", err.Error()))
 		os.Exit(1)
@@ -125,5 +125,5 @@ func main() {
 	// close database connection
 	pgStore.Close()
 	// close redis connection
-	cache.Close()
+	cach.Close()
 }

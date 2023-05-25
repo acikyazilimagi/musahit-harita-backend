@@ -11,7 +11,7 @@ import (
 //	@Tags		Feed
 //	@Produce	json
 //	@Success	200	{object}	feeds.Response
-//	@Router		/feeds/mock [GET]
+//	@Router		/mock/feeds [GET]
 func GetFeedMock() fiber.Handler {
 	return getFeedMock()
 }

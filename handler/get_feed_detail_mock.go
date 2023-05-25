@@ -13,7 +13,7 @@ import (
 //	@Tags		Feed
 //	@Produce	json
 //	@Success	200	{object}	feeds.FeedDetailResponse
-//	@Router		/feed/mock/{neighborhoodId} [GET]
+//	@Router		/mock/feed/{neighborhoodId} [GET]
 func GetFeedDetailMock() fiber.Handler {
 	return getFeedDetailMock()
 }

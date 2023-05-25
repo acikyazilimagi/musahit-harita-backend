@@ -120,6 +120,29 @@ func (r *Repository) GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailRespons
 	return &response, nil
 }
 
+func (r *Repository) GetFeedDetailFromMemory(neighborhoodId int) (*feeds.FeedDetailResponse, error) {
+	var response feeds.FeedDetailResponse
+
+	response.NeighborhoodId = neighborhoodId
+	response.LastUpdateTime = OvoBuildingStore.LastUpdateTime.Format(time.RFC3339)
+
+	response.Intensity = OvoBuildingStore.NeighborhoodIdToAvgScore[neighborhoodId]
+	if response.Intensity == 0 {
+		response.Intensity = 1
+	}
+
+	feedDetailResults := make([]feeds.FeedDetail, 0)
+	for _, building := range OvoBuildingStore.NeighborhoodIdToBuildings[neighborhoodId] {
+		var feedDetail feeds.FeedDetail
+		feedDetail.BuildingName = building.BuildingName
+		// TODO: change to real ballot box numbers
+		feedDetail.BallotBoxNos = []int{}
+		feedDetailResults = append(feedDetailResults, feedDetail)
+	}
+	response.Details = feedDetailResults
+	return &response, nil
+}
+
 func (r *Repository) ApplyVolunteer(volunteer model.VolunteerDoc) (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
@@ -211,6 +234,23 @@ func (r *Repository) GetFeeds() (*feeds.Response, error) {
 	response.Results = feedResults
 
 	return &response, nil
+}
+
+func (r *Repository) GetFeedsFromMemory() (*feeds.Response, error) {
+	response := make([]feeds.Feed, 0)
+	ovoBuildingStore := OvoBuildingStore
+
+	for k, v := range ovoBuildingStore.NeighborhoodIdToAvgScore {
+		response = append(response, feeds.Feed{
+			NeighborhoodId: k,
+			VolunteerData:  v,
+		})
+	}
+
+	return &feeds.Response{
+		Count:   len(response),
+		Results: response,
+	}, nil
 }
 
 func initCities() error {
