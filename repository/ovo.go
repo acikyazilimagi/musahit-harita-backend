@@ -11,7 +11,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -31,7 +30,6 @@ type OvoBuilding struct {
 }
 
 type OvoBuildingsInfo struct {
-	Mutex                  sync.RWMutex
 	BuildingInfos          []OvoBuilding
 	CityToDistrictsToNeigh map[string]map[string]map[string][]OvoBuilding
 	NeighToAvgScore        map[string]int
