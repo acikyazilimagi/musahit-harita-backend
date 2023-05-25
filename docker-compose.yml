@@ -15,7 +15,7 @@ services:
       - postgres
       - redis
     ports:
-      - "80:80"
+      - "7777:80"
     networks:
       - backend-network
 
