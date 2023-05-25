@@ -11,7 +11,6 @@ import (
 	"math"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -31,11 +30,10 @@ type OvoBuilding struct {
 }
 
 type OvoBuildingsInfo struct {
-	Mutex                     sync.RWMutex
-	BuildingInfos             []OvoBuilding
-	CityToDistrictsToNeigh    map[string]map[string]map[string][]OvoBuilding
-	NeighToAvgScore           map[string]int
-	NeighToId                 map[string]int
+	BuildingInfos          []OvoBuilding
+	CityToDistrictsToNeigh map[string]map[string]map[string][]OvoBuilding
+	NeighToAvgScore        map[string]int
+	//NeighToId                 map[string]int
 	NeighborhoodIdToBuildings map[int][]OvoBuilding
 	NeighborhoodIdToAvgScore  map[int]int
 	LastUpdateTime            time.Time
@@ -44,10 +42,10 @@ type OvoBuildingsInfo struct {
 func NewOvoBuildingInfo(data s3.ObjectData) *OvoBuildingsInfo {
 	ovoBuildingData = data.Bytes()
 	return &OvoBuildingsInfo{
-		BuildingInfos:             make([]OvoBuilding, 0),
-		CityToDistrictsToNeigh:    make(map[string]map[string]map[string][]OvoBuilding),
-		NeighToAvgScore:           make(map[string]int),
-		NeighToId:                 make(map[string]int),
+		BuildingInfos:          make([]OvoBuilding, 0),
+		CityToDistrictsToNeigh: make(map[string]map[string]map[string][]OvoBuilding),
+		NeighToAvgScore:        make(map[string]int),
+		//NeighToId:                 make(map[string]int),
 		NeighborhoodIdToBuildings: make(map[int][]OvoBuilding),
 		NeighborhoodIdToAvgScore:  make(map[int]int),
 		LastUpdateTime:            time.Now(),
@@ -155,7 +153,6 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 
 		nId := CityToDistrictToNeighborhoodToNeighborhoodId[city][district][neighborhood]
 		if nId != 0 {
-			o.NeighToId[neighborhood] = nId
 			if _, ok := o.NeighborhoodIdToBuildings[nId]; !ok {
 				o.NeighborhoodIdToBuildings[nId] = make([]OvoBuilding, 0)
 			}
