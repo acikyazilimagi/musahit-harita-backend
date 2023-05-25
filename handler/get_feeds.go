@@ -18,7 +18,9 @@ func GetFeed(repo *repository.Repository) fiber.Handler {
 
 func getFeed(repo *repository.Repository) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		feeds, err := repo.GetFeeds()
+		// TODO: Get feeds from database. For now, we are fetching it from aws s3 bucket and storing it in memory.
+		//feeds, err := repo.GetFeeds()
+		feeds, err := repo.GetFeedsFromMemory()
 		if err != nil {
 			return ctx.JSON(fiber.Map{
 				"error": "feeds not found",

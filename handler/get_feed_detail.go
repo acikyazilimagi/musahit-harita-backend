@@ -27,7 +27,9 @@ func getFeedDetail(repo *repository.Repository) fiber.Handler {
 				"error": "neighborhoodId not found",
 			})
 		}
-		feeds, err := repo.GetFeedDetail(id)
+		feeds, err := repo.GetFeedDetailFromMemory(id)
+		// TODO: Get feed detail from database. For now, we are fetching it from aws s3 bucket and storing it in memory.
+		//feeds, err := repo.GetFeedDetail(id)
 		if err != nil {
 			return ctx.JSON(err)
 		}
