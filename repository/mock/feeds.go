@@ -10,19 +10,21 @@ import (
 )
 
 func GetFeeds() (*feeds.Response, error) {
-	var response []feeds.Feed
+	//var response []feeds.Feed
 
-	for _, nh := range repository.NeighborhoodIdToMap {
-		response = append(response, feeds.Feed{
-			NeighborhoodId: nh.Id,
-			VolunteerData:  rand.Intn(5) + 1,
-		})
-	}
+	return release()
 
-	return &feeds.Response{
-		Count:   len(response),
-		Results: response,
-	}, nil
+	//for _, nh := range repository.NeighborhoodIdToMap {
+	//	response = append(response, feeds.Feed{
+	//		NeighborhoodId: nh.Id,
+	//		VolunteerData:  rand.Intn(5) + 1,
+	//	})
+	//}
+	//
+	//return &feeds.Response{
+	//	Count:   len(response),
+	//	Results: response,
+	//}, nil
 }
 
 func GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailResponse, error) {
@@ -47,4 +49,32 @@ func GetFeedDetail(neighborhoodId int) (*feeds.FeedDetailResponse, error) {
 		}
 	}
 	return &response, nil
+}
+
+func release() (*feeds.Response, error) {
+	response := make([]feeds.Feed, 0)
+	ovoBuildingStore := repository.OvoBuildingStore
+	for _, building := range ovoBuildingStore.BuildingInfos {
+		nId := repository.CityToDistrictToNeighborhoodToNeighborhoodId[building.City][building.District][building.Neighborhood]
+		if nId == 0 {
+			// log
+			//fmt.Println("Neighborhood not found for building: ",
+			//	"city: ", building.City,
+			//	"district: ", building.District,
+			//	"neighborhood: ", building.Neighborhood,
+			//)
+
+			continue
+		}
+
+		response = append(response, feeds.Feed{
+			NeighborhoodId: nId,
+			VolunteerData:  ovoBuildingStore.NeighToAvgScore[building.Neighborhood],
+		})
+	}
+
+	return &feeds.Response{
+		Count:   len(response),
+		Results: response,
+	}, nil
 }

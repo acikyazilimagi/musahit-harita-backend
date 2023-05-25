@@ -1,4 +1,4 @@
-package langutil
+package langutils
 
 import "strings"
 

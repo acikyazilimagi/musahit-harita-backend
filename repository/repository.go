@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	_ "embed"
+	"github.com/acikkaynak/musahit-harita-backend/utils/stringutils"
 	"math/rand"
 	"os"
 	"time"
@@ -23,10 +24,11 @@ var (
 	volunteerLocationCountsTableName = "volunteer_counts"
 
 	//go:embed city-district-neighborhood.json
-	trCities            []byte
-	CityIdToMap         = make(map[int]model.City)
-	DistrictIdToMap     = make(map[int]model.District)
-	NeighborhoodIdToMap = make(map[int]model.Neighborhood)
+	trCities                                     []byte
+	CityIdToMap                                  = make(map[int]model.City)
+	DistrictIdToMap                              = make(map[int]model.District)
+	NeighborhoodIdToMap                          = make(map[int]model.Neighborhood)
+	CityToDistrictToNeighborhoodToNeighborhoodId = make(map[string]map[string]map[string]int)
 )
 
 type PgxIface interface {
@@ -220,10 +222,16 @@ func initCities() error {
 
 	for _, city := range cityIdToMap {
 		CityIdToMap[city.Id] = city
+		CityToDistrictToNeighborhoodToNeighborhoodId[city.Name] = make(map[string]map[string]int)
 		for _, district := range city.Districts {
 			DistrictIdToMap[district.Id] = district
+			CityToDistrictToNeighborhoodToNeighborhoodId[city.Name][district.Name] = make(map[string]int)
 			for _, neighborhood := range district.Neighborhoods {
 				NeighborhoodIdToMap[neighborhood.Id] = neighborhood
+				// It is possible that a neighborhood name has parentheses in it. We need to parse them.
+				for _, parsedName := range stringutils.ParseParentheses(neighborhood.Name) {
+					CityToDistrictToNeighborhoodToNeighborhoodId[city.Name][district.Name][parsedName] = neighborhood.Id
+				}
 			}
 		}
 	}
