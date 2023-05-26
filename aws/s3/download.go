@@ -32,6 +32,8 @@ func Download(bucket string, key string) ObjectData {
 		fmt.Println(err)
 		return data
 	}
+
+	log2.Logger().Info("Downloaded object from S3", zap.String("bucket", bucket), zap.String("key", key))
 	return buff.Bytes()
 }
 

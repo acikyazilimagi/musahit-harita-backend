@@ -2,6 +2,7 @@ CREATE SCHEMA IF NOT EXISTS public;
 
 CREATE TABLE "locations" (
     "id" serial primary key,
+    "city_id" int,
     "city_ysk_id" int,
     "city_name" varchar NOT NULL,
     "district_id" int,
@@ -9,9 +10,11 @@ CREATE TABLE "locations" (
     "district_name" varchar NOT NULL,
     "county_ysk_id" int,
     "county_name" varchar,
-    "neighbourhood_ysk_id" int,
-    "neighbourhood_id" int unique,
-    "neighbourhood_name" varchar,
+    "neighborhood_ysk_id" int,
+    "neighborhood_id" int unique,
+    "neighborhood_name" varchar,
+    "latitude" varchar,
+    "longitude" varchar,
     volunteer_data int,
     "threshold" int
 );
@@ -23,10 +26,10 @@ ADD
         "city_ysk_id",
         "district_ysk_id",
         "county_ysk_id",
-        "neighbourhood_ysk_id"
+        "neighborhood_ysk_id"
     );
 
-CREATE INDEX "idx_locations_neighbourhood_ysk_id" ON "locations" ("neighbourhood_ysk_id");
+CREATE INDEX "idx_locations_neighbourhood_ysk_id" ON "locations" ("neighborhood_ysk_id");
 
 CREATE TABLE "buildings" (
     "id" serial primary key,
@@ -80,10 +83,10 @@ CREATE TABLE "volunteer_counts" (
     "source_id" int REFERENCES "sources" ("id"),
     "building_id" int REFERENCES "buildings" ("id"),
     "location_id" int REFERENCES "locations" ("id"),
-    "neighbourhood_id" int
+    "neighborhood_id" int
 );
 
-CREATE INDEX "idx_volunteer_counts_neighbourhood_id" ON "volunteer_counts" ("neighbourhood_id");
+CREATE INDEX "idx_volunteer_counts_neighbourhood_id" ON "volunteer_counts" ("neighborhood_id");
 
 CREATE INDEX "idx_volunteer_counts_location_id" ON "volunteer_counts" ("location_id");
 
