@@ -6,3 +6,6 @@ cmd/api/.air.toml
 # Compiled go files from air
 cmd/api/tmp
 .env
+
+# election locations json
+*/tr_election_locations_2023.json
