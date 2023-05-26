@@ -5,5 +5,6 @@ type District struct {
 	Name          string         `json:"name"`
 	Type          string         `json:"type"`
 	CityID        int            `json:"cityID"`
+	Geo           *Geo           `json:"geo"`
 	Neighborhoods []Neighborhood `json:"neighborhoods"`
 }

@@ -20,7 +20,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/monitor"
-	"github.com/gofiber/fiber/v2/middleware/pprof"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	jsoniter "github.com/json-iterator/go"
@@ -71,7 +70,7 @@ func main() {
 
 	app.Use(cors.New())
 	app.Use(recover.New())
-	app.Use(pprof.New())
+	//app.Use(pprof.New())
 	app.Use(auth.New())
 	app.Use(cache.New())
 
@@ -96,6 +95,7 @@ func main() {
 		log.Logger().Panic(fmt.Sprintf("redis error: %s", err.Error()))
 		os.Exit(1)
 	}
+	err = cach.DeleteAll()
 
 	application := &Application{
 		app:        app,

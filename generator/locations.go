@@ -11,6 +11,7 @@ import (
 	"go.uber.org/zap"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type Location struct {
@@ -91,18 +92,29 @@ func Migrate(pool *pgxpool.Pool) {
 
 		if lastCity.Id != int(location.CityID) {
 			response[int64(lastCity.Id)].Districts = cityDistricts[int64(lastCity.Id)]
-			//fmt.Println("cityDistricts[lastCityId]", cityDistricts[int64(lastCity.Id)])
 			cityDistricts[location.CityID] = make([]model.District, 0)
 			cityDistrictNeighborhoods[location.CityID] = make(map[int64][]model.Neighborhood)
 		}
 
 		if lastDistrict.Id != int(location.DistrictID) {
-			//neighborhoods := cityDistrictNeighborhoods[int64(lastCity.Id)][int64(lastDistrict.Id)]
-			//fmt.Println("cityDistrictNeighborhoods[lastCityId][lastDistrictId]", cityDistrictNeighborhoods[int64(lastCity.Id)][int64(lastDistrict.Id)])
-
 			lastDistrict.Neighborhoods = cityDistrictNeighborhoods[int64(lastCity.Id)][int64(lastDistrict.Id)]
+			var mainNeighborhood *model.Neighborhood
+			for _, neighborhood := range lastDistrict.Neighborhoods {
+				if strings.Contains(neighborhood.Name, "MERKEZ") {
+					mainNeighborhood = &neighborhood
+					break
+				}
+			}
+			if mainNeighborhood != nil {
+				lastDistrict.Geo = mainNeighborhood.Geo
+			}
+			if lastDistrict.Geo == nil && len(lastDistrict.Neighborhoods) > 0 {
+				lastDistrict.Geo = lastDistrict.Neighborhoods[0].Geo
+			}
+
 			cityDistricts[int64(lastCity.Id)] = append(cityDistricts[int64(lastCity.Id)], *lastDistrict)
 			response[int64(lastCity.Id)].Districts = cityDistricts[int64(lastCity.Id)]
+
 		}
 
 		Lat, err := strconv.ParseFloat(location.Lat, 64)
@@ -135,6 +147,20 @@ func Migrate(pool *pgxpool.Pool) {
 	}
 
 	lastDistrict.Neighborhoods = cityDistrictNeighborhoods[int64(lastCity.Id)][int64(lastDistrict.Id)]
+	var mainNeighborhood *model.Neighborhood
+	for _, neighborhood := range lastDistrict.Neighborhoods {
+		if strings.Contains(neighborhood.Name, "MERKEZ") {
+			mainNeighborhood = &neighborhood
+			break
+		}
+	}
+	if mainNeighborhood != nil {
+		lastDistrict.Geo = mainNeighborhood.Geo
+	}
+	if lastDistrict.Geo == nil && len(lastDistrict.Neighborhoods) > 0 {
+		lastDistrict.Geo = lastDistrict.Neighborhoods[0].Geo
+	}
+
 	cityDistricts[int64(lastCity.Id)] = append(cityDistricts[int64(lastCity.Id)], *lastDistrict)
 	response[int64(lastCity.Id)].Districts = cityDistricts[int64(lastCity.Id)]
 
