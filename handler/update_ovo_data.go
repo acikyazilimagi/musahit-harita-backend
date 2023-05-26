@@ -2,6 +2,7 @@ package handler
 
 import (
 	"github.com/acikkaynak/musahit-harita-backend/aws/s3"
+	"github.com/acikkaynak/musahit-harita-backend/cache"
 	"github.com/acikkaynak/musahit-harita-backend/repository"
 	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
@@ -34,6 +35,14 @@ func updateOvoData() fiber.Handler {
 		obi := repository.NewOvoBuildingInfo(s3Object)
 		if obi != nil {
 			obi.Store()
+			err := cache.RedisCache.DeleteAll()
+			if err != nil {
+				return ctx.JSON(
+					fiber.Map{
+						"success": false,
+						"error":   err.Error(),
+					})
+			}
 		}
 
 		return ctx.JSON(

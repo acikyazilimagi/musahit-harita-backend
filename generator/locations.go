@@ -74,7 +74,6 @@ func Migrate(pool *pgxpool.Pool) {
 				Id:        int(location.CityID),
 				Name:      location.CityName,
 				Districts: make([]model.District, 0),
-				Type:      "city",
 			}
 			response[location.CityID] = city
 			cityDistricts[location.CityID] = make([]model.District, 0)
@@ -86,12 +85,13 @@ func Migrate(pool *pgxpool.Pool) {
 			lastDistrict = &model.District{
 				Id:   int(location.DistrictID),
 				Name: location.DistrictName,
-				Type: "district",
 			}
 		}
 
 		if lastCity.Id != int(location.CityID) {
 			response[int64(lastCity.Id)].Districts = cityDistricts[int64(lastCity.Id)]
+			response[int64(lastCity.Id)].Lat = lastDistrict.Lat
+			response[int64(lastCity.Id)].Lng = lastDistrict.Lng
 			cityDistricts[location.CityID] = make([]model.District, 0)
 			cityDistrictNeighborhoods[location.CityID] = make(map[int64][]model.Neighborhood)
 		}
@@ -106,10 +106,11 @@ func Migrate(pool *pgxpool.Pool) {
 				}
 			}
 			if mainNeighborhood != nil {
-				lastDistrict.Geo = mainNeighborhood.Geo
-			}
-			if lastDistrict.Geo == nil && len(lastDistrict.Neighborhoods) > 0 {
-				lastDistrict.Geo = lastDistrict.Neighborhoods[0].Geo
+				lastDistrict.Lat = mainNeighborhood.Lat
+				lastDistrict.Lng = mainNeighborhood.Lng
+			} else if len(lastDistrict.Neighborhoods) > 0 {
+				lastDistrict.Lat = lastDistrict.Neighborhoods[0].Lat
+				lastDistrict.Lng = lastDistrict.Neighborhoods[0].Lng
 			}
 
 			cityDistricts[int64(lastCity.Id)] = append(cityDistricts[int64(lastCity.Id)], *lastDistrict)
@@ -130,11 +131,8 @@ func Migrate(pool *pgxpool.Pool) {
 			Name:       location.NeighborhoodName,
 			DistrictID: int(location.DistrictID),
 			CityID:     int(location.CityID),
-			Type:       "neighborhood",
-			Geo: &model.Geo{
-				Lat:  Lat,
-				Long: Long,
-			},
+			Lat:        Lat,
+			Lng:        Long,
 		}
 		cityDistrictNeighborhoods[location.CityID][location.DistrictID] = append(cityDistrictNeighborhoods[location.CityID][location.DistrictID], *neighborhood)
 
@@ -143,7 +141,8 @@ func Migrate(pool *pgxpool.Pool) {
 			Id:     int(location.DistrictID),
 			Name:   location.DistrictName,
 			CityID: int(location.CityID),
-			Type:   "district",
+			Lat:    Lat,
+			Lng:    Long,
 		}
 	}
 
@@ -156,10 +155,11 @@ func Migrate(pool *pgxpool.Pool) {
 		}
 	}
 	if mainNeighborhood != nil {
-		lastDistrict.Geo = mainNeighborhood.Geo
-	}
-	if lastDistrict.Geo == nil && len(lastDistrict.Neighborhoods) > 0 {
-		lastDistrict.Geo = lastDistrict.Neighborhoods[0].Geo
+		lastDistrict.Lat = mainNeighborhood.Lat
+		lastDistrict.Lng = mainNeighborhood.Lng
+	} else if len(lastDistrict.Neighborhoods) > 0 {
+		lastDistrict.Lat = lastDistrict.Neighborhoods[0].Lat
+		lastDistrict.Lng = lastDistrict.Neighborhoods[0].Lng
 	}
 
 	cityDistricts[int64(lastCity.Id)] = append(cityDistricts[int64(lastCity.Id)], *lastDistrict)

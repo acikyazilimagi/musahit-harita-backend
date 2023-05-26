@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	_ "embed"
+	"github.com/acikkaynak/musahit-harita-backend/aws/s3"
 	"math/rand"
 	"os"
 	"time"
@@ -22,7 +23,6 @@ var (
 	psql                             = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 	volunteerLocationCountsTableName = "volunteer_counts"
 
-	//go:embed tr_election_locations_2023.json
 	trCities                                     []byte
 	CityIdToMap                                  = make(map[int]model.City)
 	DistrictIdToMap                              = make(map[int]model.District)
@@ -256,6 +256,12 @@ func (r *Repository) GetFeedsFromMemory() (*feeds.Response, error) {
 }
 
 func initCities() error {
+	objData := s3.Download("secim", "tr_election_locations_2023.json")
+	if objData == nil {
+		panic("tr_election_locations_2023.json not found")
+	}
+	trCities = objData.Bytes()
+
 	cityIdToMap := make(map[string]model.City)
 	err := json.Unmarshal(trCities, &cityIdToMap)
 	if err != nil {
