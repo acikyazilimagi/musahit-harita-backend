@@ -128,7 +128,8 @@ func Migrate(pool *pgxpool.Pool) {
 		neighborhood := &model.Neighborhood{
 			Id:         int(location.NeighborhoodID),
 			Name:       location.NeighborhoodName,
-			DistrictId: int(location.DistrictID),
+			DistrictID: int(location.DistrictID),
+			CityID:     int(location.CityID),
 			Type:       "neighborhood",
 			Geo: &model.Geo{
 				Lat:  Lat,

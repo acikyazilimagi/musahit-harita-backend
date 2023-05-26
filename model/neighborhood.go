@@ -2,7 +2,8 @@ package model
 
 type Neighborhood struct {
 	Id         int    `json:"id"`
-	DistrictId int    `json:"districtId"`
+	DistrictID int    `json:"districtID"`
+	CityID     int    `json:"cityID"`
 	Name       string `json:"name"`
 	Type       string `json:"type"`
 	Geo        *Geo   `json:"geo"`
