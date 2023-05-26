@@ -256,7 +256,7 @@ func (r *Repository) GetFeedsFromMemory() (*feeds.Response, error) {
 }
 
 func initCities() error {
-	objData := s3.Download("secim", "tr_election_locations_2023.json")
+	objData := s3.Download(os.Getenv("S3_BUCKET_NAME_ELECTION_LOCATIONS"), os.Getenv("S3_BUCKET_KEY_ELECTION_LOCATIONS"))
 	if objData == nil {
 		panic("tr_election_locations_2023.json not found")
 	}
