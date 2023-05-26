@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/acikkaynak/musahit-harita-backend/aws/s3"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
-	"github.com/acikkaynak/musahit-harita-backend/utils/stringutils"
 	"go.uber.org/zap"
 	"math"
 	"strconv"
@@ -30,22 +29,26 @@ type OvoBuilding struct {
 }
 
 type OvoBuildingsInfo struct {
-	BuildingInfos          []OvoBuilding
-	CityToDistrictsToNeigh map[string]map[string]map[string][]OvoBuilding
-	NeighToAvgScore        map[string]int
-	//NeighToId                 map[string]int
+	BuildingInfos             []OvoBuilding
+	CityToDistrictsToNeigh    map[string]map[string]map[string][]OvoBuilding
+	NeighToAvgScore           map[string]NeighborhoodScore
 	NeighborhoodIdToBuildings map[int][]OvoBuilding
 	NeighborhoodIdToAvgScore  map[int]int
 	LastUpdateTime            time.Time
 }
 
+type NeighborhoodScore struct {
+	NeighborhoodId int
+	TotalScore     int
+	Count          int
+}
+
 func NewOvoBuildingInfo(data s3.ObjectData) *OvoBuildingsInfo {
 	ovoBuildingData = data.Bytes()
 	return &OvoBuildingsInfo{
-		BuildingInfos:          make([]OvoBuilding, 0),
-		CityToDistrictsToNeigh: make(map[string]map[string]map[string][]OvoBuilding),
-		NeighToAvgScore:        make(map[string]int),
-		//NeighToId:                 make(map[string]int),
+		BuildingInfos:             make([]OvoBuilding, 0),
+		CityToDistrictsToNeigh:    make(map[string]map[string]map[string][]OvoBuilding),
+		NeighToAvgScore:           make(map[string]NeighborhoodScore),
 		NeighborhoodIdToBuildings: make(map[int][]OvoBuilding),
 		NeighborhoodIdToAvgScore:  make(map[int]int),
 		LastUpdateTime:            time.Now(),
@@ -79,13 +82,13 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 
 		// split the concat column by "-"
 		concatData := strings.Split(record[1], "-")
-		if len(concatData) != 3 {
+		if len(concatData) < 2 {
 			log.Logger().Warn("Invalid concat data", zap.Int("line", count), zap.Any("record", record))
 			continue
 		}
 		// split the last column by "|"
 		buildingData := strings.Split(record[2], "|")
-		if len(buildingData) != 2 {
+		if len(buildingData) < 2 {
 			log.Logger().Warn("Invalid building data", zap.Int("line", count), zap.Any("record", record))
 			continue
 		}
@@ -97,7 +100,14 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 		}
 
 		city := record[0]
-		district := stringutils.ParseOvoDistrict(strings.TrimSpace(concatData[1]))
+
+		district := ""
+		if len(concatData) > 3 {
+			district = strings.TrimSpace(strings.Join(concatData[1:len(concatData)-1], "-"))
+		} else {
+			district = strings.TrimSpace(concatData[1])
+		}
+
 		districtScore, err := strconv.Atoi(strings.TrimSpace(concatData[0]))
 		if err != nil {
 			log.Logger().Warn("Cannot convert district score to int", zap.Int("line", count), zap.Any("record", record))
@@ -109,10 +119,7 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 			log.Logger().Warn("Cannot convert building score to int", zap.Int("line", count), zap.Any("record", record))
 		}
 
-		if len(strings.Split(buildingNameData[1], "-")) > 1 {
-			buildingNameData[1] = strings.Split(buildingNameData[1], "-")[0]
-		}
-		neighborhood := stringutils.ParseOvoNeighborhood(strings.TrimSpace(buildingNameData[1]))
+		neighborhood := strings.TrimSpace(buildingNameData[1])
 		buildingName := strings.TrimSpace(buildingNameData[2])
 		buildingID := buildingData[1]
 
@@ -143,22 +150,24 @@ func (o *OvoBuildingsInfo) Store() *OvoBuildingsInfo {
 		// append the building to the map
 		o.CityToDistrictsToNeigh[city][district][neighborhood] = append(o.CityToDistrictsToNeigh[city][district][neighborhood], ovoBuilding)
 
-		// if neighborhood is not in the map, add it
-		if _, ok := o.NeighToAvgScore[neighborhood]; !ok {
-			o.NeighToAvgScore[neighborhood] = 0
-		}
-
-		// get the average score of the neighborhood
-		o.NeighToAvgScore[neighborhood] = int(math.Ceil(float64((o.NeighToAvgScore[neighborhood] + buildingScore) / 2.0)))
-
 		nId := CityToDistrictToNeighborhoodToNeighborhoodId[city][district][neighborhood]
 		if nId != 0 {
 			if _, ok := o.NeighborhoodIdToBuildings[nId]; !ok {
 				o.NeighborhoodIdToBuildings[nId] = make([]OvoBuilding, 0)
 			}
 			o.NeighborhoodIdToBuildings[nId] = append(o.NeighborhoodIdToBuildings[nId], ovoBuilding)
-			o.NeighborhoodIdToAvgScore[nId] = o.NeighToAvgScore[neighborhood]
+		} else {
+			log.Logger().Warn("Neighborhood id not found", zap.String("city", city), zap.String("district", district), zap.String("neighborhood", neighborhood))
 		}
+	}
+
+	// calculate the average score for each neighborhood
+	for neigh, buildings := range o.NeighborhoodIdToBuildings {
+		totalScore := 0
+		for _, building := range buildings {
+			totalScore += building.BuildingScore
+		}
+		o.NeighborhoodIdToAvgScore[neigh] = int(math.Ceil(float64(totalScore / len(buildings))))
 	}
 
 	OvoBuildingStore = o

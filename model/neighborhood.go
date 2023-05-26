@@ -5,8 +5,10 @@ type Neighborhood struct {
 	DistrictId int    `json:"districtId"`
 	Name       string `json:"name"`
 	Type       string `json:"type"`
-	Geo        struct {
-		Lat  float64 `json:"lat"`
-		Long float64 `json:"long"`
-	} `json:"geo"`
+	Geo        *Geo   `json:"geo"`
+}
+
+type Geo struct {
+	Lat  float64 `json:"lat"`
+	Long float64 `json:"long"`
 }

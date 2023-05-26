@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	_ "embed"
-	"github.com/acikkaynak/musahit-harita-backend/utils/stringutils"
 	"math/rand"
 	"os"
 	"time"
@@ -23,7 +22,7 @@ var (
 	psql                             = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 	volunteerLocationCountsTableName = "volunteer_counts"
 
-	//go:embed city-district-neighborhood.json
+	//go:embed tr_election_locations_2023.json
 	trCities                                     []byte
 	CityIdToMap                                  = make(map[int]model.City)
 	DistrictIdToMap                              = make(map[int]model.District)
@@ -241,6 +240,9 @@ func (r *Repository) GetFeedsFromMemory() (*feeds.Response, error) {
 	ovoBuildingStore := OvoBuildingStore
 
 	for k, v := range ovoBuildingStore.NeighborhoodIdToAvgScore {
+		if v == 0 {
+			v = 1
+		}
 		response = append(response, feeds.Feed{
 			NeighborhoodId: k,
 			VolunteerData:  v,
@@ -268,10 +270,7 @@ func initCities() error {
 			CityToDistrictToNeighborhoodToNeighborhoodId[city.Name][district.Name] = make(map[string]int)
 			for _, neighborhood := range district.Neighborhoods {
 				NeighborhoodIdToMap[neighborhood.Id] = neighborhood
-				// It is possible that a neighborhood name has parentheses in it. We need to parse them.
-				for _, parsedName := range stringutils.ParseParentheses(neighborhood.Name) {
-					CityToDistrictToNeighborhoodToNeighborhoodId[city.Name][district.Name][parsedName] = neighborhood.Id
-				}
+				CityToDistrictToNeighborhoodToNeighborhoodId[city.Name][district.Name][neighborhood.Name] = neighborhood.Id
 			}
 		}
 	}
