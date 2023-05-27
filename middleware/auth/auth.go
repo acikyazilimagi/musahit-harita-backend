@@ -22,7 +22,7 @@ func New() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		apiKeyNeeded := false
 		_, restrictedMethod := restrictedHttpMethods[ctx.Method()]
-		if strings.Contains(ctx.Path(), "pprof") || strings.Contains(strings.ToLower(ctx.Path()), "swagger") || restrictedMethod {
+		if strings.Contains(strings.ToLower(ctx.Path()), "pprof") || strings.Contains(strings.ToLower(ctx.Path()), "swagger") || restrictedMethod {
 			apiKeyNeeded = true
 		}
 
