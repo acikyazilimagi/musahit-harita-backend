@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/acikkaynak/musahit-harita-backend/feeds"
 	"github.com/acikkaynak/musahit-harita-backend/repository"
 	"github.com/gofiber/fiber/v2"
 )
@@ -20,13 +21,16 @@ func getFeed(repo *repository.Repository) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		// TODO: Get feeds from database. For now, we are fetching it from aws s3 bucket and storing it in memory.
 		//feeds, err := repo.GetFeeds()
-		feeds, err := repo.GetFeedsFromMemory()
-		if err != nil {
-			return ctx.JSON(fiber.Map{
-				"error": "feeds not found",
-			})
-		}
+		//feeds, err := repo.GetFeedsFromMemory()
+		//if err != nil {
+		//	return ctx.JSON(fiber.Map{
+		//		"error": "feeds not found",
+		//	})
+		//}
 
-		return ctx.JSON(feeds)
+		var feed feeds.Response
+		feed.Results = make([]feeds.Feed, 0)
+
+		return ctx.JSON(feed)
 	}
 }
