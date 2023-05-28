@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/acikkaynak/musahit-harita-backend/feeds"
 	"strconv"
 
 	"github.com/acikkaynak/musahit-harita-backend/repository"
@@ -27,13 +28,14 @@ func getFeedDetail(repo *repository.Repository) fiber.Handler {
 				"error": "neighborhoodId not found",
 			})
 		}
-		feeds, err := repo.GetFeedDetailFromMemory(id)
+		//feeds, err := repo.GetFeedDetailFromMemory(id)
 		// TODO: Get feed detail from database. For now, we are fetching it from aws s3 bucket and storing it in memory.
 		//feeds, err := repo.GetFeedDetail(id)
 		if err != nil {
 			return ctx.JSON(err)
 		}
 
-		return ctx.JSON(feeds)
+		var feed feeds.FeedDetailResponse
+		return ctx.JSON(feed)
 	}
 }
