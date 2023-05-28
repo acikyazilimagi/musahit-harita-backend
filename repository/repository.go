@@ -60,6 +60,17 @@ func New() *Repository {
 		os.Exit(1)
 	}
 
+	// PING
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel()
+	err = pool.Ping(ctx)
+	if err != nil {
+		log.Logger().Fatal("Unable to ping database", zap.Error(err))
+		os.Exit(1)
+	} else {
+		log.Logger().Info("Database connection is successful")
+	}
+
 	err = initCities()
 	if err != nil {
 		log.Logger().Fatal("Unable to initialize districts", zap.Error(err))
@@ -258,7 +269,7 @@ func (r *Repository) GetFeedsFromMemory() (*feeds.Response, error) {
 func initCities() error {
 	objData := s3.Download(os.Getenv("S3_BUCKET_NAME_ELECTION_LOCATIONS"), os.Getenv("S3_BUCKET_KEY_ELECTION_LOCATIONS"))
 	if objData == nil {
-		panic("tr_election_locations_2023.json not found")
+		panic("Error while downloading cities from s3")
 	}
 	trCities = objData.Bytes()
 

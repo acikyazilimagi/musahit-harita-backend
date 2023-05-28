@@ -7,5 +7,9 @@ cmd/api/.air.toml
 cmd/api/tmp
 .env
 
+generator/
+
 # election locations json
 */tr_election_locations_2023.json
+
+docker_push.sh
