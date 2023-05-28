@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	_ "embed"
+	"fmt"
 	"github.com/Masterminds/squirrel"
 	"github.com/acikkaynak/musahit-harita-backend/model"
 	log "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
@@ -29,6 +30,154 @@ type Location struct {
 var (
 	psql = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 )
+
+func UpdateGeolocation(pool *pgxpool.Pool) {
+	// decode fix.json to map
+	fixFile, err := os.ReadFile("generator/fix.json")
+	if err != nil {
+		log.Logger().Fatal("Unable to read fix.json", zap.Error(err))
+	}
+
+	type Fix struct {
+		CityID         int     `json:"cityID"`
+		DistrictID     int     `json:"districtID"`
+		NeighborhoodID int     `json:"neighborhoodID"`
+		Neighborhood   string  `json:"neighborhood"`
+		Lat            float64 `json:"lat"`
+		Lng            float64 `json:"lng"`
+	}
+	type All struct {
+		CityID           int    `json:"cityID"`
+		DistrictID       int    `json:"districtID"`
+		NeighborhoodID   int    `json:"neighborhoodID"`
+		Neighborhood     string `json:"neighborhood"`
+		CityNameOriginal string `json:"cityNameOriginal"`
+		CityNameFetched  string `json:"cityNameFetched"`
+		Lat              string `json:"lat"`
+		Lng              string `json:"lng"`
+	}
+
+	var fix []Fix
+	err = json.Unmarshal(fixFile, &fix)
+	if err != nil {
+		log.Logger().Fatal("Unable to unmarshal fix.json", zap.Error(err))
+	}
+
+	neighIds := make([]int, 0)
+	//
+	fixMap := make(map[int]Fix)
+	fixCount := 0
+	for _, f := range fix {
+		fixCount++
+		neighIds = append(neighIds, f.NeighborhoodID)
+		//
+		fixMap[f.NeighborhoodID] = f
+		//latStr := strconv.FormatFloat(f.Lat, 'f', -1, 64)
+		//lngStr := strconv.FormatFloat(f.Lng, 'f', -1, 64)
+		//rawSql := psql.Update("neighborhood").Set("lat", latStr).Set("lng", lngStr).Where(squirrel.Eq{"id": f.NeighborhoodID})
+		//sql, args, err := rawSql.ToSql()
+		//if err != nil {
+		//	log.Logger().Fatal("Unable to generate sql", zap.Error(err))
+		//}
+		//
+		//fmt.Println(sql)
+		//
+		//_, err = pool.Exec(context.Background(), sql, args...)
+		//if err != nil {
+		//	log.Logger().Fatal("Unable to exec", zap.Error(err))
+		//}
+		//
+		//log.Logger().Info("Updated", zap.Int("neighborhood_id", f.NeighborhoodID), zap.Float64("lat", f.Lat), zap.Float64("lng", f.Lng))
+	}
+	fmt.Println("fixCount", fixCount)
+
+	allFile, err := os.ReadFile("generator/all.json")
+	if err != nil {
+		log.Logger().Fatal("Unable to read all.json", zap.Error(err))
+	}
+
+	var all []All
+	err = json.Unmarshal(allFile, &all)
+	if err != nil {
+		log.Logger().Fatal("Unable to unmarshal all.json", zap.Error(err))
+	}
+
+	allMap := make(map[int]All)
+	for _, f := range all {
+		allMap[f.NeighborhoodID] = f
+	}
+
+	uneffectedCount := 0
+	// write uneffected to csv file
+	unaffectedFile, err := os.Create("generator/uneffected.csv")
+	defer unaffectedFile.Close()
+	if err != nil {
+		log.Logger().Fatal("Unable to create uneffected.csv", zap.Error(err))
+	}
+	for _, f := range fix {
+		if _, ok := allMap[f.NeighborhoodID]; !ok {
+			fmt.Println(f.NeighborhoodID)
+		}
+
+		if _, ok := allMap[f.NeighborhoodID]; ok {
+			allLat, _ := strconv.ParseFloat(allMap[f.NeighborhoodID].Lat, 64)
+			allLng, _ := strconv.ParseFloat(allMap[f.NeighborhoodID].Lng, 64)
+			if int(f.Lat) == int(allLat) && int(f.Lng) == int(allLng) {
+				if uneffectedCount == 0 {
+					unaffectedFile.WriteString("nId,gorunen_il,gorunmesi_gereken_il,mahalle\n")
+				}
+				uneffectedCount++
+				unaffectedFile.WriteString(strconv.Itoa(f.NeighborhoodID) + "," + allMap[f.NeighborhoodID].CityNameFetched + "," + allMap[f.NeighborhoodID].CityNameOriginal + "," + allMap[f.NeighborhoodID].Neighborhood + "\n")
+				fmt.Println(strconv.Itoa(uneffectedCount)+",", "Gorunen il/ilce:", allMap[f.NeighborhoodID].CityNameFetched+",", "Gorunmesi gereken il:", allMap[f.NeighborhoodID].CityNameOriginal+",", "Mahalle:", allMap[f.NeighborhoodID].Neighborhood)
+				//fmt.Println("CityID", f.CityID, "DistrictID", f.DistrictID, "NeighborhoodID", f.NeighborhoodID, "Lat", f.Lat, "Lng", f.Lng)
+			}
+		}
+	}
+
+	fmt.Println("Uneffected count", uneffectedCount)
+
+	// get all neighborhood ids
+	//rawSql := psql.Select("id", "new_id").From("neighborhood").Where(squirrel.Eq{"id": neighIds}).OrderBy("id ASC")
+	//sql, args, err := rawSql.ToSql()
+	//if err != nil {
+	//	log.Logger().Fatal("Unable to generate sql", zap.Error(err))
+	//}
+	//
+	//rows, err := pool.Query(context.Background(), sql, args...)
+	//if err != nil {
+	//	log.Logger().Fatal("Unable to query", zap.Error(err))
+	//}
+	//
+	//neighIdMap := make(map[int]int)
+	//for rows.Next() {
+	//	var id, newId int
+	//	err := rows.Scan(&id, &newId)
+	//	if err != nil {
+	//		log.Logger().Fatal("Unable to scan", zap.Error(err))
+	//	}
+	//	neighIdMap[id] = newId
+	//}
+	//
+	//for _, f := range fix {
+	//	latStr := strconv.FormatFloat(f.Lat, 'f', -1, 64)
+	//	lngStr := strconv.FormatFloat(f.Lng, 'f', -1, 64)
+	//	rawSql := psql.Update("locations").Set("latitude", latStr).Set("longitude", lngStr).Where(squirrel.Eq{"neighborhood_id": neighIdMap[f.NeighborhoodID]})
+	//	sql, args, err := rawSql.ToSql()
+	//	if err != nil {
+	//		log.Logger().Fatal("Unable to generate sql", zap.Error(err))
+	//	}
+	//
+	//	fmt.Println("sql", sql)
+	//	fmt.Println("args", args)
+	//
+	//	_, err = pool.Exec(context.Background(), sql, args...)
+	//	if err != nil {
+	//		log.Logger().Fatal("Unable to exec", zap.Error(err))
+	//	}
+	//
+	//	log.Logger().Info("Updated", zap.Int("neighborhood_id", f.NeighborhoodID), zap.Float64("lat", f.Lat), zap.Float64("lng", f.Lng))
+	//}
+}
 
 func Migrate(pool *pgxpool.Pool) {
 	rawSql := psql.Select("city_id",

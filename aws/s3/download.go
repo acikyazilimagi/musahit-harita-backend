@@ -1,7 +1,6 @@
 package s3
 
 import (
-	"fmt"
 	log2 "github.com/acikkaynak/musahit-harita-backend/pkg/logger"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -17,6 +16,7 @@ func (o ObjectData) Bytes() []byte {
 }
 
 func Download(bucket string, key string) ObjectData {
+	session.Must(session.NewSession())
 	sess := session.Must(session.NewSession())
 	downloader := s3manager.NewDownloader(sess)
 
@@ -29,7 +29,7 @@ func Download(bucket string, key string) ObjectData {
 		},
 	)
 	if err != nil {
-		fmt.Println(err)
+		log2.Logger().Error("Couldn't download object from S3", zap.String("bucket", bucket), zap.String("key", key), zap.Error(err))
 		return data
 	}
 

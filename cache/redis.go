@@ -30,6 +30,8 @@ func NewRedisStore() (*RedisStore, error) {
 	if err != nil {
 		log.Logger().Info(fmt.Sprintf("Unable to connect to redis: %s", err.Error()))
 		return nil, err
+	} else {
+		log.Logger().Info("Connected to redis")
 	}
 
 	RedisCache = &RedisStore{client: client, conf: conf}

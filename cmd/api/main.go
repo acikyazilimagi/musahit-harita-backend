@@ -44,9 +44,12 @@ func (a *Application) RegisterApi() {
 	a.app.Get("/metrics", adaptor.HTTPHandler(promhttp.Handler()))
 
 	a.app.Get("/feeds/", handler.GetFeed(a.repository))
+	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
+
 	a.app.Get("/mock/feeds", handler.GetFeedMock())
 	a.app.Get("/mock/feed/:neighborhoodId", handler.GetFeedDetailMock())
-	a.app.Get("/feed/:neighborhoodId", handler.GetFeedDetail(a.repository))
+	a.app.Get("/mock-ovo/feeds", handler.GetFeedsOvoMock(a.repository))
+	a.app.Get("/mock-ovo/feed/:neighborhoodId", handler.GetFeedDetailOvoMock(a.repository))
 
 	a.app.Post("/ovo-data", handler.UpdateOvoData())
 
